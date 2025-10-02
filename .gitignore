@@ -1,0 +1,360 @@
+# ============================================================================
+# PYTHON
+# ============================================================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+.pdm-python
+.pdm-build/
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.env.*
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ============================================================================
+# PLAYWRIGHT & TESTING
+# ============================================================================
+# Test results and artifacts
+test-results/
+traces/
+screenshots/
+videos/
+downloads/
+test-artifacts/
+
+# Playwright browsers (auto-downloaded)
+ms-playwright/
+
+# pytest
+.pytest_cache/
+pytest_cache/
+.pytest/
+
+# Test reports
+*.xml
+*.html
+test-results/reports/
+allure-results/
+allure-reports/
+
+# Coverage
+.coverage
+htmlcov/
+coverage/
+
+# ============================================================================
+# AUTOMATION FRAMEWORK SPECIFIC
+# ============================================================================
+# Logs
+logs/
+*.log
+*.log.*
+automation.log
+
+# Configuration secrets
+config/environments/*/.*env*
+*.key
+*.pem
+*.p12
+*.pfx
+service-account.json
+credentials.json
+
+# Test data exports
+export_excel/
+data/excel/
+data/uploads/
+data/exports/
+temp_data/
+
+# Database backups
+*.sql
+*.bak
+*.db
+
+# ============================================================================
+# DEVELOPMENT TOOLS
+# ============================================================================
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sln.docstates
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ============================================================================
+# OPERATING SYSTEM
+# ============================================================================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================================================
+# MULTIMEDIA & DOCUMENTS
+# ============================================================================
+# Images
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.tif
+*.webp
+*.svg
+*.ico
+
+# Videos
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+
+# Audio
+*.mp3
+*.wav
+*.flac
+*.aac
+
+# Documents
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.csv
+
+# Archives
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.gz
+*.bz2
+*.xz
+
+# ============================================================================
+# TEMPORARY & CACHE FILES
+# ============================================================================
+# Temporary files
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+
+# Lock files
+*.lock
+*.pid
+*.seed
+*.out
+
+# ============================================================================
+# PACKAGE MANAGERS & DEPENDENCIES
+# ============================================================================
+# npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# uv
+.uv/
+uv.lock
+
+# pipenv
+Pipfile.lock
+
+# ============================================================================
+# CUSTOM FRAMEWORK ADDITIONS
+# ============================================================================
+# Custom element selectors (if generated)
+element/
+
+# Duration tracking files
+duration.js
+*.duration
+
+# Local development files
+local_*
+dev_*
+debug_*
+
+# Backup configurations
+config/*.backup
+config/*.bak
+
+# Performance data
+performance/
+metrics/
+benchmarks/

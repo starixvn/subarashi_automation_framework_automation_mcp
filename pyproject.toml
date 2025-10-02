@@ -1,0 +1,121 @@
+[project]
+name = "framework-automation-playwright"
+authors = [{ name = "victor", email = "victor.nguyen@starixsoft.com" }]
+version = "1.0.0"
+description = "Playwright automation testing framework"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+dependencies = [
+    "playwright>=1.51.0",
+    "pytest>=8.3.0",
+    "pytest-playwright>=0.7.1",
+    "pytest-xdist>=3.6.0",
+    "pytest-html>=4.1.1",
+    "pytest-metadata>=3.1.1",
+    "pytest-base-url>=2.1.0",
+    "cryptography>=43.0.3",
+    "openpyxl>=3.1.5",
+    "pandas>=2.2.3",
+    "google-api-python-client>=2.156.0",
+    "google-auth>=2.37.0",
+    "google-auth-oauthlib>=1.2.1",
+    "google-auth-httplib2>=0.2.0",
+    "gspread>=6.1.4",
+    "allure-pytest>=2.14.1",
+    "slack-sdk>=3.35.0",
+    "ruff>=0.13.1",
+    "pytz>=2024.2",
+    "jsonpath-ng>=1.6.1",
+    "pyodbc>=5.0.0",
+    "lxml>=5.0.0",
+    "argparse>=1.4.0",
+    "requests>=2.32.0",
+    "pyyaml>=6.0.2",
+    "jsonschema>=4.23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=24.0.0",
+    "isort>=5.13.0",
+    "mypy>=1.11.0",
+    "pre-commit>=4.0.0",
+    "flake8>=7.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/", "TestSuites/", "config/", "README.md", "pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["TestSuites"]
+python_files = ["TestSuites_*.py"]
+python_functions = ["TestCase*", "test*"]
+python_classes = ["*Test*", "*Demo*"]
+addopts = "--cache-clear --html=test-results/reports/report.html --self-contained-html -v"
+markers = [
+    "demo: mark tests as demo tests",
+    "compare: mark tests as data comparison tests",
+    "smoke: mark tests as smoke tests",
+    "functional: mark tests as functional tests",
+    "e2e: mark tests as end-to-end tests",
+    "jobs: mark tests as job execution tests",
+    "regression: mark tests as regression tests",
+    "api: mark tests as API tests",
+    "ui: mark tests as UI tests",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-exclude = ["migrations", ".venv", "build", "dist"]
+
+[tool.ruff.lint]
+ignore = [
+    "E501",   # Line too long (handled by formatter)
+    "COM812", # Trailing comma (handled by formatter)
+    "ISC001", # Single line implicit string concatenation
+    "E402",   # Module level import not at top of file
+    "N999",   # Invalid module name (TestSuites naming convention)
+    "N813",   # Camelcase imported as lowercase
+    "N806",   # Variable in function should be lowercase
+    "N802",   # Function name should be lowercase (TestCase naming)
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.git
+    | \.venv
+    | build
+    | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+exclude = ["build/", "dist/", ".venv/"]
