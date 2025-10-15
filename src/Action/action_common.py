@@ -7,10 +7,14 @@ from src.Core.database import DatabaseManager
 from src.Core.utilities import UtilitiesManager
 
 from src.Interfaces import interface_login
+from src.Interfaces import interface_common
 from src.DataTest import data_login
 
 
-UI = {"login_page": interface_login.Element_Login_Lap[Config.LANGUAGE]}
+UI = {
+    "login_page": interface_login.Element_Login_Lap[Config.LANGUAGE],
+    "menu": interface_common.Element_Menu[Config.LANGUAGE],
+}
 
 DataSet = {
     "login_page": data_login.Data_Login_Lap[Config.ENVIRONMENT],
@@ -27,7 +31,7 @@ class ActionCommon:
 
     @auto_log
     def login(self):
-        DataSet["login_page"]["Password"] = self.utils.decrypt(
+        decrypted_password = self.utils.decrypt(
             DataSet["login_page"]["encrypted"],
             DataSet["login_page"]["Password"],
             DataSet["login_page"]["salt"],
@@ -36,9 +40,7 @@ class ActionCommon:
         self.page.type_text(
             UI["login_page"]["txtUsername"], DataSet["login_page"]["Username"]
         )
-        self.page.type_text(
-            UI["login_page"]["txtPassword"], DataSet["login_page"]["Password"]
-        )
+        self.page.type_text(UI["login_page"]["txtPassword"], decrypted_password)
         self.page.click(UI["login_page"]["btnLogin"])
         self.page.for_page_load()
         self.page.verify_element_exist(UI["login_page"]["imgLogo"])
@@ -59,7 +61,9 @@ class ActionCommon:
         else:
             self.page.click("//a[text()='English' and @class='choice']")
 
-        self.page.click("//div[@class='widgetbox preferences_setting']//a[contains(@class,'btn btn-ok')]")
+        self.page.click(
+            "//div[@class='widgetbox preferences_setting']//a[contains(@class,'btn btn-ok')]"
+        )
 
     def getExternalServerName(self):
         res = self.api.get(
@@ -76,3 +80,8 @@ class ActionCommon:
         self.apiurl = Config.URLS[Config.SITE][Config.ENVIRONMENT]["apiurl"]
 
         self.analyticsurl = Config.URLS[Config.SITE][Config.ENVIRONMENT]["analyticsurl"]
+
+    @auto_log
+    def navigate_to_betting_ticket_center(self):
+        self.page.click(UI["menu"]["lnkBettingTicketCenter"])
+        self.page.for_timeout(2)

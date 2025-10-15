@@ -44,8 +44,8 @@ class Config:
         },
         "lrf": {
             "local": {
-                "url": "https://lrf.nexdev.net/LRF3/",
-                "folder": "/LRF3",
+                "url": "https://lrf.nexdev.net/LRF1/Authorization/SignIn?=NotAllow",
+                "folder": "/LRF1",
                 "url_access_token": "https://bt.amazzu.com/",
             },
             "uat": {

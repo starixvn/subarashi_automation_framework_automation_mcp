@@ -1,0 +1,500 @@
+# AUTO-RUN AND FIX AUTOMATION RULE
+
+You are an expert automation engineer tasked with diagnosing, fixing, and re-running failed test automation code in the Playwright Python framework.
+
+## MANDATORY READING BEFORE STARTING
+
+**CRITICAL**: Before attempting ANY fix, you MUST:
+
+1. **Read Framework Architecture**
+
+   - Read `@automation-test-generation.mdc` completely to understand framework structure
+   - Understand Page Object Model (POM) pattern used in this framework
+   - Know the folder structure: `src/Core/`, `src/Interfaces/`, `src/Action/`, `TestSuites/`
+
+2. **Read ALL Core Functions**
+
+   You MUST read these files to know what functions are available - NEVER implement custom solutions when Core functions exist:
+
+   **Browser Functions** (read completely):
+
+   - `src/Core/page/actions.py` - Element interactions (click, fill, type, hover, iframe methods)
+   - `src/Core/page/assertions.py` - Element verification (visible, exists, text checks, iframe assertions)
+   - `src/Core/page/browser.py` - Browser operations (navigate, screenshot, JavaScript, frames)
+   - `src/Core/page/waits.py` - **CRITICAL** - All wait strategies (visibility, load, network, custom conditions)
+
+   **API Functions** (read if needed):
+
+   - `src/Core/api/client.py` - HTTP methods (GET, POST, PUT, DELETE with auto-retry)
+   - `src/Core/api/extractor.py` - Response extraction (JSON, headers, regex, JSONPath)
+   - `src/Core/api/assertions.py` - API assertions (status code, JSON validation, schema)
+
+   **Database Functions** (read if needed):
+
+   - `src/Core/database/connection.py` - Database connection management
+   - `src/Core/database/query.py` - SQL queries (SELECT, INSERT, UPDATE, DELETE, stored procedures)
+   - `src/Core/database/data.py` - Data operations (CRUD, bulk insert, table management)
+
+   **Utility Functions** (read if needed):
+
+   - `src/Core/utilities/files.py` - File operations (read/write JSON, Excel, text files)
+   - `src/Core/utilities/assertions.py` - Custom assertions (equal, contains, greater than)
+   - `src/Core/utilities/crypto.py` - Encryption/decryption, base64 encoding
+   - `src/Core/utilities/google_sheets.py` - Google Sheets integration
+   - `src/Core/utilities/reports.py` - Reporting (Slack, Telegram, Teams, screenshots)
+
+3. **Access Pattern in Action Classes**
+
+   ```python
+   # In your Action classes, access functions through:
+   self.page.click(selector)  # From actions.py
+   self.page.element_visible(selector)  # From assertions.py
+   self.page.navigate_to(url)  # From browser.py
+   self.page.for_element_visible(selector, timeout)  # From waits.py
+
+   self.api.get(url)  # From api/client.py
+   self.api.json_field(response, "data.id")  # From api/extractor.py
+
+   self.database.execute_select(sql)  # From database/query.py
+   self.utils.read_json(file_path)  # From utilities/files.py
+   ```
+
+## STEP-BY-STEP FIX PROCESS
+
+### STEP 1: UNDERSTAND THE ERROR
+
+Run the failing test and categorize the error:
+
+```bash
+python -m pytest [test_file]::[TestClass]::[test_method] -v -s
+```
+
+**Error Categories**:
+
+**A. Element Not Found**
+
+- Errors: "TimeoutError", "Selector not found", "Element not attached"
+- Causes: Wrong selector, missing wait, element in iframe, dynamic content
+
+**B. Assertion Failures**
+
+- Errors: "AssertionError", "Expected X but got Y"
+- Causes: Wrong expected value, wrong extraction method, timing issue
+
+**C. Timeout Errors**
+
+- Errors: "Timeout exceeded", "waiting for selector"
+- Causes: Missing waits, slow page load, element never appears
+
+**D. Iframe Context Errors**
+
+- Errors: "Frame was detached", "Element is not attached"
+- Causes: Wrong iframe selector, not using frame methods, iframe not loaded
+
+**E. Multiple Elements**
+
+- Errors: "strict mode violation: resolved to 7 elements"
+- Causes: Non-unique selector
+
+**Check Failure Screenshot**: `test-results/screenshots/` to see actual page state
+
+### STEP 2: DIAGNOSE ROOT CAUSE
+
+#### For Element Not Found Errors:
+
+**Step 2.1: Check if Element is in Iframe**
+
+```python
+# Read your Interface file to check iframe context
+# If element is in iframe, MUST use frame methods:
+
+# WRONG (will fail):
+self.page.click(selector)
+
+# CORRECT:
+self.page.click_on_frame(frame_xpath, selector, idx_child_frame)
+```
+
+**Step 2.2: Verify Selector is Correct**
+
+**CRITICAL**: If selector is wrong, you MUST re-capture from actual web page. DO NOT guess!
+
+**Re-capture Process**:
+
+1. **Navigate to page**:
+
+   ```python
+   # Use browser tools to access the page
+   ```
+
+2. **Get HTML structure**:
+
+   ```python
+   # Use browser_get_page_html to see structure
+   ```
+
+3. **Inspect element with browser_evaluate**:
+
+   ```javascript
+   // For element in iframe:
+   (function () {
+     const iframe = document.querySelector('iframe[name="FunctionFrame"]');
+     const doc = iframe?.contentDocument || document;
+     const element = doc.querySelector("YOUR_SELECTOR");
+     return {
+       exists: !!element,
+       visible: element
+         ? window.getComputedStyle(element).display !== "none"
+         : false,
+       className: element?.className,
+       id: element?.id,
+       name: element?.name,
+       attributes: element
+         ? Array.from(element.attributes).map((a) => ({
+             name: a.name,
+             value: a.value,
+           }))
+         : [],
+       outerHTML: element?.outerHTML.substring(0, 500),
+     };
+   })();
+   ```
+
+4. **Verify XPath uniqueness** (MUST return exactly 1 element):
+
+   ```javascript
+   (function () {
+     const iframe = document.querySelector('iframe[name="FunctionFrame"]');
+     const doc = iframe?.contentDocument || document;
+     const result = doc.evaluate(
+       "YOUR_XPATH",
+       doc,
+       null,
+       XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+       null
+     );
+     return {
+       count: result.snapshotLength,
+       isUnique: result.snapshotLength === 1,
+     };
+   })();
+   ```
+
+5. **Test selector** with browser_click or browser_type
+
+6. **Update Interface file** only after 100% verification
+
+**Step 2.3: Add Intelligent Waits**
+
+Read `src/Core/page/waits.py` completely to understand all wait functions. Choose appropriate wait based on context:
+
+**For Element Visibility**:
+
+```python
+# Main page
+self.page.for_element_visible(selector, timeout=10)
+
+# In iframe
+self.page.for_element_visible_on_frame(frame_xpath, selector, timeout=10)
+```
+
+**For Dynamic Content**:
+
+```python
+# After navigation
+self.page.navigate_to(url)
+self.page.for_network_idle(timeout=15)  # Wait for all API calls
+
+# Or wait for specific response
+self.page.for_response("**/api/data", timeout=10)
+```
+
+**For Form Submissions**:
+
+```python
+self.page.click(submit_button)
+self.page.for_url_change("**/success*", timeout=10)
+# Or
+self.page.for_element_visible(success_message, timeout=10)
+```
+
+**For Element State**:
+
+```python
+# Wait for clickable (visible + enabled)
+self.page.for_element_clickable(button_selector, timeout=10)
+
+# Wait for enabled state
+self.page.for_element_enabled(input_selector, timeout=10)
+```
+
+**For Loading Indicators**:
+
+```python
+# Wait for spinner to disappear
+self.page.for_element_hidden(loading_spinner, timeout=15)
+```
+
+**For Iframe Loading**:
+
+```python
+# Wait for iframe to load first
+self.page.for_frame_load(frame_name="FunctionFrame", timeout=15)
+
+# Then wait for element inside
+self.page.for_element_visible_on_frame(frame_xpath, selector, timeout=10)
+```
+
+**Intelligent Wait Strategy Pattern**:
+
+```python
+# Step 1: Wait for page/iframe load
+self.page.for_page_load(timeout=15)
+
+# Step 2: Wait for element ready
+self.page.for_element_visible(selector, timeout=10)
+
+# Step 3: Wait for interactable
+self.page.for_element_clickable(selector, timeout=5)
+
+# Step 4: Perform action
+self.page.click(selector)
+
+# Step 5: Wait for result
+self.page.for_element_hidden(loading_spinner, timeout=10)  # Something disappears
+# OR
+self.page.for_element_visible(result, timeout=10)  # Something appears
+```
+
+**Timeout Guidelines**:
+
+- Normal element: 5-10 seconds
+- Page load/navigation: 15-20 seconds
+- API calls: 10-15 seconds
+- Heavy processing: 20-30 seconds
+- Never < 3s or > 60s
+
+**Step 2.4: Check Element Count**
+
+```python
+count = self.page.count_elements(selector)
+print(f"DEBUG: Found {count} elements")
+
+if count > 1:
+    # Make selector more specific OR use index
+    self.page.click_element_by_index(selector, 0)
+```
+
+#### For Assertion Failures:
+
+**Use Multiple Extraction Methods** (read `src/Core/page/actions.py` for all extraction methods):
+
+```python
+# For dropdowns - try multiple methods
+method1 = self.page.get_attribute(selector, "value")
+method2 = self.page.get_text(f"{selector}//option[@selected]")
+method3 = self.page.get_text(selector)
+
+print(f"DEBUG: value={method1}, option={method2}, text={method3}")
+
+# Use OR logic
+is_correct = (
+    method1 == expected or
+    method2 == expected or
+    expected in method3
+)
+
+assert is_correct, f"Expected '{expected}' not found"
+```
+
+**Handle None/Empty Values**:
+
+```python
+actual = self.page.get_text(selector) or ""
+actual = actual.strip()
+```
+
+#### For Iframe Errors:
+
+```python
+# Always wait for iframe load first
+self.page.for_frame_load(frame_name="FunctionFrame", timeout=15)
+
+# Use consistent frame methods throughout
+self.page.click_on_frame(frame_xpath, selector)
+self.page.get_text_on_frame(frame_xpath, selector)
+self.page.element_visible_on_frame(frame_xpath, selector)
+```
+
+### STEP 3: IMPLEMENT FIX
+
+**Fix Pattern 1: Wrong Selector**
+
+- Re-capture element from web (Step 2.2)
+- Update Interface file
+
+**Fix Pattern 2: Missing Wait**
+
+```python
+# Add appropriate wait before action
+self.page.for_element_visible(selector, timeout=10)
+self.page.click(selector)
+```
+
+**Fix Pattern 3: Wrong Method (Iframe)**
+
+```python
+# Change to frame method
+self.page.click_on_frame(frame_xpath, selector)
+```
+
+**Fix Pattern 4: Multiple Elements**
+
+```python
+# Make selector specific
+specific = f"{selector}[@data-id='unique']"
+# Or use index
+self.page.click_element_by_index(selector, 0)
+```
+
+**Fix Pattern 5: Dropdown Value**
+
+```python
+# Use multiple extraction methods
+value = self.page.get_attribute(selector, "value")
+text = self.page.get_text(selector)
+actual = value or text or ""
+```
+
+### STEP 4: TEST THE FIX
+
+```bash
+# Run test
+python -m pytest [test_file]::[TestClass]::[test_method] -v -s
+
+# Run 3 times to ensure stability
+python -m pytest [test_file]::[TestClass]::[test_method] -v -s --count=3
+```
+
+If fails, go back to Step 2 and diagnose further.
+
+### STEP 5: CLEAN UP CODE
+
+1. Remove debug print statements
+2. Optimize waits (remove redundant waits)
+3. Add comments only for complex fixes
+
+### STEP 6: VERIFY INTEGRATION
+
+```bash
+# Run full test file to ensure no regression
+python -m pytest [test_file] -v
+```
+
+## COMMON ERROR PATTERNS & SOLUTIONS
+
+### Pattern 1: TimeoutError waiting for element
+
+**Solution**: Verify selector (re-capture if wrong) + Add appropriate wait
+
+### Pattern 2: Strict mode violation (7 elements)
+
+**Solution**: Make selector more specific OR use index
+
+### Pattern 3: AssertionError - Expected 'X', got ''
+
+**Solution**: Add wait + Use multiple extraction methods + Handle None values
+
+### Pattern 4: Frame was detached
+
+**Solution**: Wait for iframe load + Use frame-specific methods
+
+### Pattern 5: AttributeError: 'NoneType'
+
+**Solution**: Always handle None: `value = self.page.get_text(selector) or ""`
+
+## ADVANCED STRATEGIES
+
+### Strategy 1: Fallback Extraction
+
+```python
+def get_value_with_fallback(self, selector):
+    methods = [
+        lambda: self.page.get_attribute(selector, "value"),
+        lambda: self.page.get_text(selector),
+        lambda: self.page.get_attribute(selector, "data-value"),
+    ]
+    for method in methods:
+        try:
+            value = method()
+            if value:
+                return value.strip()
+        except:
+            continue
+    return ""
+```
+
+### Strategy 2: Retry with Exponential Backoff
+
+```python
+for attempt in range(3):
+    try:
+        wait_time = (attempt + 1) * 2  # 2s, 4s, 6s
+        self.page.for_element_visible(selector, timeout=wait_time)
+        self.page.click(selector)
+        break
+    except Exception as e:
+        if attempt == 2:
+            raise e
+```
+
+### Strategy 3: Smart Context Detection
+
+```python
+# Check if element is in main page or iframe
+if self.page.element_exists(selector):
+    return "main"
+elif self.page.element_exists_on_frame(frame_xpath, selector):
+    return "frame"
+else:
+    # Re-capture element from web
+    pass
+```
+
+## CRITICAL RULES - FOLLOW STRICTLY
+
+1. **READ FIRST**: Read `@automation-test-generation.mdc` and ALL Core files before fixing
+2. **USE CORE FUNCTIONS**: Never implement custom solutions - use functions from `src/Core/`
+3. **RE-CAPTURE WRONG SELECTORS**: Always go back to web and re-capture - never guess
+4. **INTELLIGENT WAITS**: Read `waits.py` and use appropriate wait based on context
+5. **FRAME METHODS**: Use frame-specific functions for iframe elements
+6. **MULTIPLE METHODS**: Use multiple extraction methods for robust assertions
+7. **HANDLE NONE**: Always provide defaults for None values
+8. **TEST IMMEDIATELY**: Test after each fix
+9. **VERIFY STABILITY**: Run 3+ times to ensure fix is stable
+10. **CLEAN UP**: Remove debug code after fix works
+
+## SUCCESS CRITERIA
+
+A successful fix must:
+
+- Test passes consistently (3+ runs)
+- Uses Core functions correctly
+- Has intelligent waits (not arbitrary)
+- Handles edge cases (None, timeouts)
+- Code is clean (no debug prints)
+- No regression in other tests
+
+## WHEN TO ESCALATE
+
+Escalate to human when:
+
+- 5+ fix attempts failed
+- Selector re-capture doesn't help
+- Core functions missing (framework change needed)
+- Business logic unclear
+- Multiple tests fail with same root cause
+
+---
+
+**Remember**: This framework provides all functions you need in `src/Core/`. Read those files completely, understand available functions, use them correctly. When selectors are wrong, re-capture from web. When timing is an issue, use intelligent waits from `waits.py`. Follow this systematically for accurate fixes.

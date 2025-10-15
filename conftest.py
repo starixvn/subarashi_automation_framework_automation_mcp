@@ -9,6 +9,7 @@ from playwright.sync_api import Page
 from config.config import Config
 from src.Core.utilities import GoogleSheets
 from src.Core.utilities import Reports
+from src.Action.action_common import ActionCommon
 
 logs_dir = Path("test-results/logs")
 logs_dir.mkdir(parents=True, exist_ok=True)
@@ -68,6 +69,13 @@ def browser_context_args(browser_context_args):
 # ============================================================================
 # TEST EXECUTION HOOKS
 # ============================================================================
+
+
+@pytest.fixture(autouse=True)
+def auto_login(page):
+    action = ActionCommon(page)
+    action.login()
+    yield
 
 
 @pytest.fixture(autouse=True)
