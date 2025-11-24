@@ -85,3 +85,9 @@ class ActionCommon:
     def navigate_to_betting_ticket_center(self):
         self.page.click(UI["menu"]["lnkBettingTicketCenter"])
         self.page.for_timeout(2)
+
+    @auto_log
+    def navigate_to_dashboard(self):
+        self.page.click(UI["menu"]["lnkDashboard"])
+        self.page.for_timeout(2)
+        self.page.for_element_visible("//iframe[@name='FunctionFrame']", timeout=15)
