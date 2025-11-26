@@ -1,14 +1,17 @@
+from typing import Optional
 from playwright.sync_api import Page
 from src.Core.exceptions import ElementError
 from src.Core import auto_log, retry
+from .frame import Frame
 
 
-class Actions:
-    def __init__(self, page: Page):
-        self.page = page
+class Actions(Frame):
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.page: Page = page
 
     @auto_log
-    @retry(max_attempts=3)
+    # @retry(max_attempts=3)
     def click(self, selector: str) -> None:
         try:
             self.page.locator(selector).click()
@@ -16,7 +19,7 @@ class Actions:
             raise ElementError(f"Failed to click {selector}", str(e)) from e
 
     @auto_log
-    @retry(max_attempts=3)
+    @retry(max_attempts=2)
     def double_click(self, selector: str) -> None:
         try:
             self.page.locator(selector).dblclick()
@@ -24,7 +27,7 @@ class Actions:
             raise ElementError(f"Failed to double click {selector}", str(e)) from e
 
     @auto_log
-    @retry(max_attempts=3)
+    # @retry(max_attempts=3)
     def right_click(self, selector: str) -> None:
         try:
             self.page.locator(selector).click(button="right")
@@ -32,7 +35,7 @@ class Actions:
             raise ElementError(f"Failed to right click {selector}", str(e)) from e
 
     @auto_log
-    @retry(max_attempts=3)
+    # @retry(max_attempts=3)
     def fill(self, selector: str, text: str) -> None:
         try:
             element = self.page.locator(selector)
@@ -42,12 +45,12 @@ class Actions:
             raise ElementError(f"Failed to fill {selector}", str(e)) from e
 
     @auto_log
-    @retry(max_attempts=3)
+    # @retry(max_attempts=3)
     def fill_text(self, selector: str, text: str) -> None:
         self.fill(selector, text)
 
     @auto_log
-    @retry(max_attempts=3)
+    # @retry(max_attempts=3)
     def type_text(self, selector: str, text: str) -> None:
         try:
             self.page.locator(selector).type(text)
@@ -55,7 +58,7 @@ class Actions:
             raise ElementError(f"Failed to type in {selector}", str(e)) from e
 
     @auto_log
-    @retry(max_attempts=3)
+    # @retry(max_attempts=3)
     def clear(self, selector: str) -> None:
         try:
             self.page.locator(selector).clear()
@@ -159,9 +162,13 @@ class Actions:
     # ========================================================================
 
     @auto_log
-    @retry(max_attempts=3)
+    # @retry(max_attempts=3)
     def fill_on_frame(
-        self, frame_xpath: str, selector: str, text: str, idx_child_frame: int = None
+        self,
+        frame_xpath: str,
+        selector: str,
+        text: str,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -171,13 +178,13 @@ class Actions:
             raise ElementError(f"Failed to fill on frame {frame_xpath}", str(e)) from e
 
     @auto_log
-    @retry(max_attempts=3)
+    # @retry(max_attempts=3)
     def click_on_frame(
         self,
         frame_xpath: str,
         selector: str,
-        idx_child_frame: int = None,
-        idx_latest_frame: int = None,
+        idx_child_frame: Optional[int] = None,
+        idx_latest_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(
@@ -189,7 +196,11 @@ class Actions:
 
     @auto_log
     def select_option_on_frame(
-        self, frame_xpath: str, selector: str, value: str, idx_child_frame: int = None
+        self,
+        frame_xpath: str,
+        selector: str,
+        value: str,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -201,7 +212,7 @@ class Actions:
 
     @auto_log
     def check_on_frame(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
+        self, frame_xpath: str, selector: str, idx_child_frame: Optional[int] = None
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -211,7 +222,7 @@ class Actions:
 
     @auto_log
     def uncheck_on_frame(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
+        self, frame_xpath: str, selector: str, idx_child_frame: Optional[int] = None
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -226,8 +237,8 @@ class Actions:
         self,
         frame_xpath: str,
         selector: str,
-        idx_child_frame: int = None,
-        idx_latest_frame: int = None,
+        idx_child_frame: Optional[int] = None,
+        idx_latest_frame: Optional[int] = None,
     ) -> str:
         try:
             element = self._get_frame_element(
@@ -245,7 +256,7 @@ class Actions:
         frame_xpath: str,
         selector: str,
         attribute: str,
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> str:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -257,7 +268,7 @@ class Actions:
 
     @auto_log
     def get_value_on_frame(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
+        self, frame_xpath: str, selector: str, idx_child_frame: Optional[int] = None
     ) -> str:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -269,7 +280,7 @@ class Actions:
 
     @auto_log
     def get_inner_html_on_frame(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
+        self, frame_xpath: str, selector: str, idx_child_frame: Optional[int] = None
     ) -> str:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -291,7 +302,7 @@ class Actions:
 
     @auto_log
     def hover_on_frame(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
+        self, frame_xpath: str, selector: str, idx_child_frame: Optional[int] = None
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -336,8 +347,8 @@ class Actions:
         self,
         frame_xpath: str,
         selector: str,
-        idx_child_frame: int = None,
-        idx_latest_frame: int = None,
+        idx_child_frame: Optional[int] = None,
+        idx_latest_frame: Optional[int] = None,
     ) -> int:
         try:
             element = self._get_frame_element(
@@ -351,7 +362,11 @@ class Actions:
 
     @auto_log
     def press_key_on_frame(
-        self, frame_xpath: str, selector: str, key: str, idx_child_frame: int = None
+        self,
+        frame_xpath: str,
+        selector: str,
+        key: str,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -367,7 +382,7 @@ class Actions:
         frame_xpath: str,
         source: str,
         target: str,
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             source_element = self._get_frame_element(
@@ -381,25 +396,3 @@ class Actions:
             raise ElementError(
                 f"Failed to drag and drop on frame {frame_xpath}", str(e)
             ) from e
-
-    def _get_frame_element(
-        self,
-        frame_xpath: str,
-        selector: str,
-        idx_child_frame: int = None,
-        idx_latest_frame: int = None,
-    ):
-        """Helper method to get element from frame"""
-        if idx_child_frame is None and idx_latest_frame is None:
-            if frame_xpath == "":
-                return self.page.locator(selector)
-            else:
-                frame = self.page.frame_locator(frame_xpath)
-                return frame.locator(selector)
-        elif idx_latest_frame is None:
-            frames = self.page.frames
-            child_frame = frames[1].child_frames
-            return child_frame[idx_child_frame].locator(selector)
-        else:
-            frames = self.page.frames[idx_latest_frame]
-            return frames.locator(selector)

@@ -1,4 +1,4 @@
-Data_BettingTicketCenter = {
+DATA_BETTING_TICKET_CENTER = {
     "local": {
         "en": {
             "BaseCurrency": "KRW",

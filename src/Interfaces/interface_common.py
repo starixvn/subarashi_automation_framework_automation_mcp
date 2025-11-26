@@ -1,4 +1,4 @@
-Element_Menu_ch = {
+ELEMENT_MENU_CH = {
     "lnkCustomerManagement": "//span[@class='menu-title' and text()='Customer Management']",
     "CustomerManagement": {
         "lnkPlayerAdministration": "//a[@target='FunctionFrame' and text()='Player Administration']",
@@ -7,7 +7,7 @@ Element_Menu_ch = {
     },
 }
 
-Element_Menu = {
+ELEMENT_MENU = {
     "en": {
         "lnkDashboard": "//span[@class='menu-title' and text()='DASHBOARD']",
         "lnkBettingTicketCenter": "//span[@class='menu-title' and text()='Betting Ticket Center']",
@@ -52,7 +52,7 @@ Element_Menu = {
     },
 }
 
-Element_Menu_LRF = {
+ELEMENT_MENU_LRF = {
     "en": {
         "lnkNotification": "//span[@class='menu-title' and text()='NOTIFICATION']",
         "lnkReports": "//span[@class='menu-title' and text()='REPORTS']",
@@ -120,14 +120,14 @@ Element_Menu_LRF = {
     },
 }
 
-Element_Frames = {
+ELEMENT_FRAMES = {
     "frmMain": "//iframe[@name='FunctionFrame']",
     "frmSub": "//iframe[@name='paDetailFrame']",
 }
 
-Element_Frames_LRF = {"frmMain": "//iframe[@id='mainFrame']"}
+ELEMENT_FRAMES_LRF = {"frmMain": "//iframe[@id='mainFrame']"}
 
-Elements = {
+ELEMENTS = {
     "en": {
         "ddlCurrencySingle": "//div[@id='select-list-CurrencyId']",
         "ddlBaseCurrency": "//div[@id='select-list-BaseCurrency']",
@@ -156,4 +156,4 @@ Elements = {
     },
 }
 
-Regex = {"token": '__RequestVerificationToken" type="hidden" value="(.+)"'}
+REGEX = {"token": '__RequestVerificationToken" type="hidden" value="(.+)"'}

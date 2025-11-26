@@ -1,4 +1,4 @@
-Data_Login_Lap = {
+DATA_LOGIN_LAP = {
     "local": {
         "Username": "vntest",
         "Password": "Nexcel-SUN",
@@ -25,7 +25,7 @@ Data_Login_Lap = {
     },
 }
 
-Data_Login_Lrf = {
+DATA_LOGIN_LRF = {
     "local": {
         "Username": "pgmphuc",
         "Password": "Nexcel-SUN",

@@ -1,4 +1,4 @@
-Element_Login_Lap_ch = {
+ELEMENT_LOGIN_LAP_CH = {
     "txtUsername": "//input[@placeholder='用戶ID']",
     "txtPassword": "//input[@id='Password']",
     "btnLogin": "//button[@id='btn_login']",
@@ -7,7 +7,7 @@ Element_Login_Lap_ch = {
     "lnkAccessSubsidiarySetting": "/Verify/ApplyApiToken?ActionLink=api/Setting/GetSubsidiarySetting&Type=5",
 }
 
-Element_Login_Lap = {
+ELEMENT_LOGIN_LAP = {
     "en": {
         "txtUsername": "//input[@placeholder='User ID']",
         "txtPassword": "//input[@id='Password']",
@@ -26,7 +26,7 @@ Element_Login_Lap = {
     },
 }
 
-Element_Login_Lrf = {
+ELEMENT_LOGIN_LRF = {
     "en": {
         "txtUsername": '[placeholder="Username"]',
         "txtPassword": '[placeholder="Password"]',

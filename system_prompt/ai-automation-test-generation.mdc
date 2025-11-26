@@ -32,9 +32,57 @@ Overview of the Python & Playwright automation test framework
 
 The src/Interfaces folder stores element locator files (per page or sub-function) using XPath, CSS selectors, etc. Review these to understand the locator file style and follow it when implementing new elements.
 
-The src/DataTest folder stores data files used by scripts. Each file maps to a page—review and implement according to the framework’s current style.
+The src/DataTest folder stores data files used by scripts. Each file maps to a page—review and implement according to the framework's current style.
+
+CRITICAL - POM DataTest File Management Rules:
++ Each page/module MUST have its own data file following the naming pattern: data_{page_name}.py
++ data_common.py is ONLY for common/shared data used across multiple pages
++ Before creating any new data file, ALWAYS check if a file for that page already exists in src/DataTest/
++ If the data file for a page already exists:
+    - DO NOT create a new file with the same or similar name
+    - ALWAYS add new data to the existing file
+    - Read the existing file first to check if the data already exists
+    - Only add the data if it doesn't exist yet in that file
++ If the data file does not exist for a new page:
+    - Create a new file following the exact naming convention: data_{page_name}.py
+    - Follow the existing code style and structure from other data files
+    - Each data file MUST follow this structure:
+        * Data dictionary with environment keys (local, sit, uat, pro)
+        * Each environment contains language keys (en, ch, vi, etc.)
+        * Each language contains the actual test data
++ Example: For "Betting Ticket Center" page:
+    - Create data_betting_ticket_center.py (not data_btc.py, not data_betting.py)
+    - Dictionary name: Data_BettingTicketCenter
++ DO NOT add page-specific data to data_common.py
++ This ensures clean POM architecture: one page = one data file = all test data for that page in one place
 
 The src/Action folder is where business logic for automation is implemented. Use the corresponding files in src/Core, src/Interfaces, and src/DataTest to build accurate scripts for each test case.
+
+CRITICAL - POM Action File Management Rules:
++ Each page/module MUST have its own action file following the naming pattern: action_{page_name}.py
++ action_common.py is ONLY for common/shared actions used across multiple pages (login, navigation, etc.)
++ Before creating any new action file, ALWAYS check if a file for that page already exists in src/Action/
++ If the action file for a page already exists:
+    - DO NOT create a new file with the same or similar name
+    - ALWAYS add new action methods to the existing file
+    - Read the existing file first to check if the method already exists
+    - Only add the method if it doesn't exist yet in that file
++ If the action file does not exist for a new page:
+    - Create a new file following the exact naming convention: action_{page_name}.py
+    - Follow the existing code style and structure from action_common.py
+    - Each action file MUST follow this structure:
+        * Import statements (Page, Config, auto_log, Managers)
+        * Import corresponding interface and data files
+        * Create UI dictionary mapping to interface elements
+        * Create DataSet dictionary mapping to data
+        * Create Action class with __init__ method initializing all managers
+        * Implement action methods with @auto_log decorator
++ Example: For "Betting Ticket Center" page:
+    - Create action_betting_ticket_center.py (not action_btc.py, not action_betting_ticket.py)
+    - Import interface_betting_ticket_center and data_betting_ticket_center
+    - Class name: ActionBettingTicketCenter
++ DO NOT add page-specific actions to action_common.py
++ This ensures clean POM architecture: one page = one action file = all business logic for that page in one place
 
 The TestSuites folder imports all Actions for execution.
 Important: Files in TestSuites are for running only—they must contain no business logic.
@@ -176,48 +224,106 @@ Step 2: + After obtaining the test case information, the framework already handl
     + Example: For "My Account" page, use interface_my_account.py (not interface_my_account_v2.py, not interface_myaccount_new.py)
     + This ensures clean POM architecture: one page = one interface file = all elements for that page in one place
 
-Step 3: + Implement the script in the Actions folder by using the exact elements and functions in the files under the Core folder. + IMPORTANT: DO NOT implement login logic in your action methods. The framework automatically handles login via conftest.py before each test. + Focus ONLY on the actual test steps after login (navigation, clicks, verifications, etc.) + Always import:
-from playwright.sync_api import Page
-from config.config import Config
-from src.Core import auto_log
-from src.Core.page import PageManager
-from src.Core.api import APIManager
-from src.Core.database import DatabaseManager
-from src.Core.utilities import UtilitiesManager + Always initialize
-def init(self, page: Page):
-self.page = PageManager(page)
-self.api = APIManager(page.context.request)
-self.database = DatabaseManager()
-self.utils = UtilitiesManager()
-So that each prebuilt component in the files is used precisely without creating anything new.
-Implement actions ensuring the code is simple, easy to understand, and uses the Interface and DataTest files correctly to implement Steps and Expected_Result accurately.
+Step 3: Implement Action Files Following POM Architecture
+    + CRITICAL: Determine which page/module the test case belongs to
+    + Check if action file for that page already exists in src/Action/
+    + If exists: Add new methods to existing file
+    + If NOT exists: Create NEW file following pattern action_{page_name}.py
+    + DO NOT add page-specific actions to action_common.py
+    + action_common.py is ONLY for shared actions (login, common navigation, etc.)
+    
+    + For each action file, follow this exact structure:
+    
+    1. Import statements:
+        from playwright.sync_api import Page
+        from config.config import Config
+        from src.Core import auto_log
+        from src.Core.page import PageManager
+        from src.Core.api import APIManager
+        from src.Core.database import DatabaseManager
+        from src.Core.utilities import UtilitiesManager
+        
+        from src.Interfaces import interface_{page_name}
+        from src.DataTest import data_{page_name}
+    
+    2. Create UI dictionary mapping to interface elements:
+        UI = {
+            "{page_name}": interface_{page_name}.Element_{PageName}[Config.LANGUAGE],
+        }
+    
+    3. Create DataSet dictionary mapping to data:
+        DataSet = {
+            "{page_name}": data_{page_name}.Data_{PageName}[Config.ENVIRONMENT],
+        }
+    
+    4. Create Action class with proper initialization:
+        class Action{PageName}:
+            def __init__(self, page: Page):
+                self.page = PageManager(page)
+                self.api = APIManager(page.context.request)
+                self.database = DatabaseManager()
+                self.utils = UtilitiesManager()
+    
+    5. Implement action methods with @auto_log decorator:
+        @auto_log
+        def method_name(self):
+            # Implementation using self.page, UI, DataSet
+    
+    + IMPORTANT: DO NOT implement login logic in your action methods. The framework automatically handles login via conftest.py before each test.
+    + Focus ONLY on the actual test steps after login (navigation, clicks, verifications, etc.)
+    + Use the exact elements from UI dictionary and data from DataSet dictionary
+    + Use functions from self.page, self.api, self.database, self.utils managers
+    + Implement actions ensuring the code is simple, easy to understand, and uses the Interface and DataTest files correctly to implement Steps and Expected_Result accurately.
 
-Step 4:
-    + After having all Actions, start implementing the Testsuites file. Ensure the filename follows the correct format, and the file is only for execution with no business logic whatsoever.
-    + Review the sample and implement with absolute accuracy
-
-import sys
-import pytest
-from os.path import abspath
-from os.path import dirname as d
-
-# import action logic modules
-
-from src.Action.action_common import ActionCommon
-
-root_dir = d(d(abspath(**file**)))
-sys.path.append(root_dir)
-
-class TestDemoPlaywright:
-TEST_CASE_SHEET_NAME = "Testcase"
-
-    @pytest.fixture(autouse=True)
-    def setup_action(self, page):
-            self.action_demo = ActionCommon(page)
-
-    @pytest.mark.tc_id("LAP_TC_1")
-    def Testcase_001_Verify_Message_Display(self):
-        self.action_demo.verify_message_display()
-
-
+Step 4: Implement TestSuites File
+    + After having all Actions, start implementing the Testsuites file
+    + Ensure the filename follows the correct format: TestSuites_{number}_{description}.py
+    + The file is ONLY for execution with NO business logic whatsoever
+    + CRITICAL: Import the CORRECT action class for each test case based on which page it tests
+    + DO NOT only import ActionCommon - import the specific action class for the page being tested
+    
+    + TestSuites file structure:
+    
+    1. Import statements:
+        import sys
+        import pytest
+        from os.path import abspath
+        from os.path import dirname as d
+        
+        # Import ALL action classes needed for this test suite
+        from src.Action.action_common import ActionCommon
+        from src.Action.action_{page_name} import Action{PageName}
+        
+        root_dir = d(d(abspath(__file__)))
+        sys.path.append(root_dir)
+    
+    2. Create test class:
+        class Test{Description}:
+            TEST_CASE_SHEET_NAME = "Testcase"
+    
+    3. Setup fixtures for each action class:
+        @pytest.fixture(autouse=True)
+        def setup_action(self, page):
+            self.action_common = ActionCommon(page)
+            self.action_{page_name} = Action{PageName}(page)
+    
+    4. Implement test methods:
+        @pytest.mark.tc_id("TC_ID_FROM_SHEET")
+        def Testcase_{number}_{description}(self):
+            # Call action methods from the appropriate action class
+            self.action_{page_name}.method_name()
+    
+    + Example for Betting Ticket Center tests:
+        from src.Action.action_betting_ticket_center import ActionBettingTicketCenter
+        
+        @pytest.fixture(autouse=True)
+        def setup_action(self, page):
+            self.action_common = ActionCommon(page)
+            self.action_btc = ActionBettingTicketCenter(page)
+        
+        @pytest.mark.tc_id("BTC_TC_1")
+        def Testcase_001_Verify_Advanced_Search(self):
+            self.action_btc.verify_advanced_search()
+    
     + Carefully check the TC_ID to pass it correctly to the test case; there must not be any mistakes whatsoever.
+    + Each test method should call the appropriate action method from the correct action class

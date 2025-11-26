@@ -1,10 +1,13 @@
+from typing import Optional
 from playwright.sync_api import Page
 from src.Core import auto_log, ElementError
+from .frame import Frame
 
 
-class Assertions:
-    def __init__(self, page: Page):
-        self.page = page
+class Assertions(Frame):
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.page: Page = page
 
     @auto_log
     def element_visible(self, selector: str) -> bool:
@@ -241,8 +244,8 @@ class Assertions:
         self,
         frame_xpath: str,
         selector: str,
-        idx_child_frame: int = None,
-        idx_latest_frame: int = None,
+        idx_child_frame: Optional[int] = None,
+        idx_latest_frame: Optional[int] = None,
     ) -> bool:
         try:
             element = self._get_frame_element(
@@ -259,8 +262,8 @@ class Assertions:
         self,
         frame_xpath: str,
         selector: str,
-        idx_child_frame: int = None,
-        idx_latest_frame: int = None,
+        idx_child_frame: Optional[int] = None,
+        idx_latest_frame: Optional[int] = None,
     ) -> bool:
         try:
             element = self._get_frame_element(
@@ -274,7 +277,7 @@ class Assertions:
 
     @auto_log
     def element_enabled_on_frame(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
+        self, frame_xpath: str, selector: str, idx_child_frame: Optional[int] = None
     ) -> bool:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -286,7 +289,7 @@ class Assertions:
 
     @auto_log
     def element_checked_on_frame(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
+        self, frame_xpath: str, selector: str, idx_child_frame: Optional[int] = None
     ) -> bool:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -302,7 +305,7 @@ class Assertions:
         frame_xpath: str,
         selector: str,
         expected_text: str,
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -322,7 +325,7 @@ class Assertions:
         frame_xpath: str,
         selector: str,
         text: str,
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -342,7 +345,7 @@ class Assertions:
         frame_xpath: str,
         selector: str,
         expected_value: str,
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -362,8 +365,8 @@ class Assertions:
         frame_xpath: str,
         selector: str,
         expected_count: int,
-        idx_child_frame: int = None,
-        idx_latest_frame: int = None,
+        idx_child_frame: Optional[int] = None,
+        idx_latest_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(
@@ -381,7 +384,7 @@ class Assertions:
 
     @auto_log
     def is_checkbox_checked_on_frame(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
+        self, frame_xpath: str, selector: str, idx_child_frame: Optional[int] = None
     ) -> bool:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -393,7 +396,7 @@ class Assertions:
 
     @auto_log
     def element_not_visible_on_frame(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
+        self, frame_xpath: str, selector: str, idx_child_frame: Optional[int] = None
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -409,8 +412,8 @@ class Assertions:
         self,
         frame_xpath: str,
         selector: str,
-        idx_child_frame: int = None,
-        idx_latest_frame: int = None,
+        idx_child_frame: Optional[int] = None,
+        idx_latest_frame: Optional[int] = None,
     ) -> bool:
         try:
             element = self._get_frame_element(
@@ -419,24 +422,3 @@ class Assertions:
             return element.is_visible()
         except Exception:
             return False
-
-    def _get_frame_element(
-        self,
-        frame_xpath: str,
-        selector: str,
-        idx_child_frame: int = None,
-        idx_latest_frame: int = None,
-    ):
-        if idx_child_frame is None and idx_latest_frame is None:
-            if frame_xpath == "":
-                return self.page.locator(selector)
-            else:
-                frame = self.page.frame_locator(frame_xpath)
-                return frame.locator(selector)
-        elif idx_latest_frame is None:
-            frames = self.page.frames
-            child_frame = frames[1].child_frames
-            return child_frame[idx_child_frame].locator(selector)
-        else:
-            frames = self.page.frames[idx_latest_frame]
-            return frames.locator(selector)

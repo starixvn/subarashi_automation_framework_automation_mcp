@@ -1,4 +1,4 @@
-Data_Common = {
+DATA_COMMON = {
     "local": {
         "en": {  #
             "Licensee": "12Bet",

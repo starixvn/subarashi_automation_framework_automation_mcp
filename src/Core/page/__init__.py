@@ -3,10 +3,11 @@ from .actions import Actions
 from .assertions import Assertions
 from .browser import BrowserManager
 from .waits import Waits
+from .frame import Frame
 
 
 class PageManager(Actions, Assertions, BrowserManager, Waits):
-    def __init__(self, page: Page):
+    def __init__(self, page: Page) -> None:
         Actions.__init__(self, page)
         Assertions.__init__(self, page)
         BrowserManager.__init__(self, page)
@@ -18,5 +19,6 @@ __all__ = [
     "Assertions",
     "BrowserManager",
     "Waits",
+    "Frame",
     "PageManager",
 ]

@@ -1,4 +1,4 @@
-Element_BettingTicketCenter_AdvancedSearch = {
+ELEMENT_BETTING_TICKET_CENTER_ADVANCED_SEARCH = {
     "en": {
         "tabAdvancedSearch": "//a[text()='Advanced Search']",
         "tabRefNo": "//a[text()='Ref No']",
@@ -37,7 +37,7 @@ Element_BettingTicketCenter_AdvancedSearch = {
     },
 }
 
-Element_BettingTicketCenter_RefNo = {
+ELEMENT_BETTING_TICKET_CENTER_REF_NO = {
     "en": {
         "txtRefNo": "//div[text()='Ref No']/following-sibling::div//input",
         "ddlBaseCurrency": "//div[text()='Base Currency']/following-sibling::div//select",

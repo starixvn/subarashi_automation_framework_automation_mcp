@@ -1,10 +1,13 @@
+from typing import Optional
 from playwright.sync_api import Page
 from src.Core import auto_log, ElementError
+from .frame import Frame
 
 
-class Waits:
-    def __init__(self, page: Page):
-        self.page = page
+class Waits(Frame):
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.page: Page = page
 
     @auto_log
     def for_element(self, selector: str, timeout: float = 30.0) -> None:
@@ -47,7 +50,7 @@ class Waits:
     @auto_log
     def for_page_load(self, timeout: float = 30.0) -> None:
         try:
-            self.page.wait_for_load_state("load", timeout=timeout * 1000)
+            self.page.wait_for_load_state("domcontentloaded", timeout=timeout * 1000)
         except Exception as e:
             raise ElementError("Page did not load", str(e)) from e
 
@@ -158,7 +161,7 @@ class Waits:
         selector: str,
         timeout: float = 30.0,
         state: str = "visible",
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -174,7 +177,7 @@ class Waits:
         frame_xpath: str,
         selector: str,
         timeout: float = 30.0,
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         self.for_element_on_frame(
             frame_xpath, selector, timeout, "visible", idx_child_frame
@@ -186,7 +189,7 @@ class Waits:
         frame_xpath: str,
         selector: str,
         timeout: float = 30.0,
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -202,7 +205,7 @@ class Waits:
         frame_xpath: str,
         selector: str,
         timeout: float = 30.0,
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
@@ -221,18 +224,3 @@ class Waits:
             frame.wait_for_load_state(state=state, timeout=timeout * 1000)
         except Exception as e:
             raise ElementError(f"Frame did not load: {frame_name}", str(e)) from e
-
-    def _get_frame_element(
-        self, frame_xpath: str, selector: str, idx_child_frame: int = None
-    ):
-        """Helper method to get element from frame"""
-        if idx_child_frame is None:
-            if frame_xpath == "":
-                return self.page.locator(selector)
-            else:
-                frame = self.page.frame_locator(frame_xpath)
-                return frame.locator(selector)
-        else:
-            frames = self.page.frames
-            child_frame = frames[1].child_frames
-            return child_frame[idx_child_frame].locator(selector)

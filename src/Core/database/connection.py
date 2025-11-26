@@ -1,5 +1,5 @@
 import pyodbc
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from src.Core import auto_log, retry, AutomationError
 
 
@@ -132,7 +132,7 @@ class Connection:
             raise AutomationError("Failed to get database name", str(e)) from e
 
     @auto_log
-    def get_tables(self) -> list:
+    def get_tables(self) -> List[str]:
         if not self.is_connected:
             raise AutomationError("Not connected to database")
         try:
@@ -144,8 +144,13 @@ class Connection:
         except Exception as e:
             raise AutomationError("Failed to get table list", str(e)) from e
 
-    def __enter__(self):
+    def __enter__(self) -> "Connection":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: Optional[type],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[Any],
+    ) -> None:
         self.disconnect()

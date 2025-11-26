@@ -1,10 +1,11 @@
-from playwright.sync_api import Page
+from typing import Any, List
+from playwright.sync_api import Page, Frame
 from src.Core import auto_log, AutomationError
 
 
 class BrowserManager:
-    def __init__(self, page: Page):
-        self.page = page
+    def __init__(self, page: Page) -> None:
+        self.page: Page = page
 
     @auto_log
     def navigate_to(self, url: str) -> None:
@@ -74,21 +75,21 @@ class BrowserManager:
             raise AutomationError("Failed to close page", str(e)) from e
 
     @auto_log
-    def evaluate(self, expression: str) -> any:
+    def evaluate(self, expression: str) -> Any:
         try:
             return self.page.evaluate(expression)
         except Exception as e:
             raise AutomationError(f"Failed to evaluate: {expression}", str(e)) from e
 
     @auto_log
-    def get_frames(self) -> list:
+    def get_frames(self) -> List[Frame]:
         try:
             return self.page.frames
         except Exception as e:
             raise AutomationError("Failed to get frames", str(e)) from e
 
     @auto_log
-    def get_frame_by_name(self, name: str):
+    def get_frame_by_name(self, name: str) -> Frame:
         try:
             return self.page.frame(name=name)
         except Exception as e:
@@ -249,7 +250,7 @@ class BrowserManager:
     # ========================================================================
 
     @auto_log
-    def extract_document(self, selector: str):
+    def extract_document(self, selector: str) -> Any:
         try:
             from lxml import html
 
@@ -261,7 +262,7 @@ class BrowserManager:
             ) from e
 
     @auto_log
-    def get_text_on_document(self, document, xpath: str) -> str:
+    def get_text_on_document(self, document: Any, xpath: str) -> str:
         try:
             result = document.xpath(xpath)
             return result[0].text if result else ""
@@ -269,7 +270,7 @@ class BrowserManager:
             raise AutomationError("Failed to get text from document", str(e)) from e
 
     @auto_log
-    def get_element_on_document(self, document, xpath: str):
+    def get_element_on_document(self, document: Any, xpath: str) -> Any:
         try:
             result = document.xpath(xpath)
             return result[0] if result else None

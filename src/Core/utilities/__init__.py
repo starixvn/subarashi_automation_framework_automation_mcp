@@ -6,13 +6,13 @@ from .reports import Reports
 
 
 class UtilitiesManager(Assertions, Crypto, Files, Reports):
-    def __init__(self):
+    def __init__(self) -> None:
         Assertions.__init__(self)
         Reports.__init__(self)
         self._google_sheets = None
 
     @property
-    def google_sheets(self):
+    def google_sheets(self) -> GoogleSheets:
         if self._google_sheets is None:
             self._google_sheets = GoogleSheets()
         return self._google_sheets

@@ -1,13 +1,15 @@
 import functools
 import logging
 import time
-from typing import Callable
+from typing import Callable, TypeVar, Any
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 
-def retry(max_attempts: int = 3, delay: float = 1.0) -> Callable:
-    def decorator(func: Callable) -> Callable:
+def retry(max_attempts: int = 3, delay: float = 1.0) -> Callable[[F], F]:
+    def decorator(func: F) -> F:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             logger = logging.getLogger(func.__module__)
 
             last_exception = None
@@ -34,9 +36,9 @@ def retry(max_attempts: int = 3, delay: float = 1.0) -> Callable:
     return decorator
 
 
-def auto_log(func: Callable) -> Callable:
+def auto_log(func: F) -> F:
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         logger = logging.getLogger(func.__module__)
 
         func_name = func.__name__

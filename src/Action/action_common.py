@@ -12,13 +12,13 @@ from src.DataTest import data_login
 
 
 UI = {
-    "login_page": interface_login.Element_Login_Lap[Config.LANGUAGE],
-    "menu": interface_common.Element_Menu[Config.LANGUAGE],
+    "login_page": interface_login.ELEMENT_LOGIN_LAP[Config.LANGUAGE],
+    "menu": interface_common.ELEMENT_MENU[Config.LANGUAGE],
 }
 
 DataSet = {
-    "login_page": data_login.Data_Login_Lap[Config.ENVIRONMENT],
-    "login_page_lrf": data_login.Data_Login_Lrf[Config.ENVIRONMENT],
+    "login_page": data_login.DATA_LOGIN_LAP[Config.ENVIRONMENT],
+    "login_page_lrf": data_login.DATA_LOGIN_LRF[Config.ENVIRONMENT],
 }
 
 

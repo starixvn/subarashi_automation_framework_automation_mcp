@@ -95,7 +95,7 @@ class Extractor:
 
     @staticmethod
     @auto_log
-    def regex_match_all(response: APIResponse, pattern: str) -> list:
+    def regex_match_all(response: APIResponse, pattern: str) -> List[str]:
         try:
             text = response.text()
             matches = re.findall(pattern, text)
@@ -133,7 +133,7 @@ class Extractor:
 
     @staticmethod
     @auto_log
-    def jsonpath_all(response: APIResponse, jsonpath_expr: str) -> list:
+    def jsonpath_all(response: APIResponse, jsonpath_expr: str) -> List[Any]:
         try:
             json_data = response.json()
             expression = parse(jsonpath_expr)
