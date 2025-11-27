@@ -7,24 +7,15 @@ class Config:
     ENVIRONMENT = "local"
     SITE = "lap"
     LANGUAGE = "en"
-    BROWSER = "chromium"
-    HEADLESS = True
-    TIMEOUT = 30
-    DEBUG = False
+    HEADLESS = False
     VIEWPORT_WIDTH = 1280
     VIEWPORT_HEIGHT = 720
-    TELEGRAM_BOT_TOKEN = ""
-    TELEGRAM_CHAT_IDS = []
-    TEAMS_CONVERSATION_IDS = []
     SLACK_BOT_TOKEN = "xoxb-8352731735536-8948054884291-ZWQ933ANuC1mc4eoRxDp6g5h"
     SLACK_CHANNEL_ID = "C08USD10388"
     GOOGLE_SHEETS_ID = "1S3ynvvSHgq8hw3I34g15wAc_c3jWJ30LFCJoYJJLyP0"
     GOOGLE_SHEETS_ENABLED = True
     SCREENSHOT_ON_FAILURE = True
-    VIDEO_ON_FAILURE = False
     FULL_PAGE_SCREENSHOT = True
-    NOTIFY_ON_FAILURE = True
-    NOTIFY_PASS_RATE_THRESHOLD = 95.0
 
     # Test Results Directories
     TEST_RESULTS_DIR = ROOT_DIR / "test-results"
@@ -35,10 +26,9 @@ class Config:
     ALLURE_BATCH_FILE = TEST_RESULTS_DIR / "start_allure.bat"
 
     # Allure Configuration
-    ALLURE_ENABLED = (
-        True  # Enable/disable Allure (report generation + auto-open on local)
-    )
+    ALLURE_ENABLED = True
     ALLURE_REPORT_URL = None  # Set via CLI --allure-report-url or Jenkins env
+    
     URLS: ClassVar[dict[str, dict[str, str]]] = {
         "lap": {
             "local": {

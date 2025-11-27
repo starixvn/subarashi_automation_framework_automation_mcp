@@ -176,19 +176,17 @@ echo.
 echo =========================================
 echo STEP 6: Run Automation Tests
 echo =========================================
-echo Environment: LOCAL
+echo Environment: PROD
 echo Site: LAP
 echo Browser: Chromium
 echo Headless: True
-echo Parallel: Auto
 echo =========================================
 
 call uv run pytest TestSuites/ ^
-  --env=local ^
+  --env=prod ^
   --site=lap ^
   --headless=true ^
-  --tb=short ^
-  -n auto
+  --tb=short
 
 set TEST_EXIT_CODE=%ERRORLEVEL%
 
