@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Optional, Literal
 from playwright.sync_api import Page
+from config.config import Config
 from src.Core import auto_log, ElementError
 from .frame import Frame
 
@@ -10,7 +11,9 @@ class Waits(Frame):
         self.page: Page = page
 
     @auto_log
-    def for_element(self, selector: str, timeout: float = 30.0) -> None:
+    def for_element(self, selector: str, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.locator(selector).wait_for(
                 state="visible", timeout=timeout * 1000
@@ -19,18 +22,28 @@ class Waits(Frame):
             raise ElementError(f"Element did not appear: {selector}", str(e)) from e
 
     @auto_log
-    def for_element_visible(self, selector: str, timeout: float = 30.0) -> None:
+    def for_element_visible(
+        self, selector: str, timeout: Optional[float] = None
+    ) -> None:
         self.for_element(selector, timeout)
 
     @auto_log
-    def for_element_hidden(self, selector: str, timeout: float = 30.0) -> None:
+    def for_element_hidden(
+        self, selector: str, timeout: Optional[float] = None
+    ) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.locator(selector).wait_for(state="hidden", timeout=timeout * 1000)
         except Exception as e:
             raise ElementError(f"Element did not hide: {selector}", str(e)) from e
 
     @auto_log
-    def for_element_attached(self, selector: str, timeout: float = 30.0) -> None:
+    def for_element_attached(
+        self, selector: str, timeout: Optional[float] = None
+    ) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.locator(selector).wait_for(
                 state="attached", timeout=timeout * 1000
@@ -39,7 +52,11 @@ class Waits(Frame):
             raise ElementError(f"Element did not attach: {selector}", str(e)) from e
 
     @auto_log
-    def for_element_detached(self, selector: str, timeout: float = 30.0) -> None:
+    def for_element_detached(
+        self, selector: str, timeout: Optional[float] = None
+    ) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.locator(selector).wait_for(
                 state="detached", timeout=timeout * 1000
@@ -48,35 +65,45 @@ class Waits(Frame):
             raise ElementError(f"Element did not detach: {selector}", str(e)) from e
 
     @auto_log
-    def for_page_load(self, timeout: float = 30.0) -> None:
+    def for_page_load(self, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.wait_for_load_state("domcontentloaded", timeout=timeout * 1000)
         except Exception as e:
             raise ElementError("Page did not load", str(e)) from e
 
     @auto_log
-    def for_network_idle(self, timeout: float = 30.0) -> None:
+    def for_network_idle(self, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.wait_for_load_state("networkidle", timeout=timeout * 1000)
         except Exception as e:
             raise ElementError("Network did not become idle", str(e)) from e
 
     @auto_log
-    def for_dom_ready(self, timeout: float = 30.0) -> None:
+    def for_dom_ready(self, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.wait_for_load_state("domcontentloaded", timeout=timeout * 1000)
         except Exception as e:
             raise ElementError("DOM not ready", str(e)) from e
 
     @auto_log
-    def for_selector(self, selector: str, timeout: float = 30.0) -> None:
+    def for_selector(self, selector: str, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.wait_for_selector(selector, timeout=timeout * 1000)
         except Exception as e:
             raise ElementError(f"Selector did not appear: {selector}", str(e)) from e
 
     @auto_log
-    def for_url_change(self, url_pattern: str, timeout: float = 30.0) -> None:
+    def for_url_change(self, url_pattern: str, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.wait_for_url(url_pattern, timeout=timeout * 1000)
         except Exception as e:
@@ -85,7 +112,9 @@ class Waits(Frame):
             ) from e
 
     @auto_log
-    def for_function(self, js_function: str, timeout: float = 30.0) -> None:
+    def for_function(self, js_function: str, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.wait_for_function(js_function, timeout=timeout * 1000)
         except Exception as e:
@@ -94,18 +123,30 @@ class Waits(Frame):
             ) from e
 
     @auto_log
-    def for_response(self, url_pattern: str, timeout: float = 30.0) -> None:
+    def for_response(self, url_pattern: str, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
-            self.page.wait_for_response(url_pattern, timeout=timeout * 1000)
+            self.page.wait_for_event(
+                "response",
+                predicate=lambda r: url_pattern in r.url,
+                timeout=timeout * 1000,
+            )
         except Exception as e:
             raise ElementError(
                 f"Response not received for: {url_pattern}", str(e)
             ) from e
 
     @auto_log
-    def for_request(self, url_pattern: str, timeout: float = 30.0) -> None:
+    def for_request(self, url_pattern: str, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
-            self.page.wait_for_request(url_pattern, timeout=timeout * 1000)
+            self.page.wait_for_event(
+                "request",
+                predicate=lambda r: url_pattern in r.url,
+                timeout=timeout * 1000,
+            )
         except Exception as e:
             raise ElementError(f"Request not sent for: {url_pattern}", str(e)) from e
 
@@ -117,7 +158,11 @@ class Waits(Frame):
             raise ElementError(f"Wait timeout failed: {seconds}s", str(e)) from e
 
     @auto_log
-    def for_element_enabled(self, selector: str, timeout: float = 30.0) -> None:
+    def for_element_enabled(
+        self, selector: str, timeout: Optional[float] = None
+    ) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.wait_for_function(
                 f"() => document.querySelector('{selector}') && !document.querySelector('{selector}').disabled",
@@ -129,7 +174,11 @@ class Waits(Frame):
             ) from e
 
     @auto_log
-    def for_element_clickable(self, selector: str, timeout: float = 30.0) -> None:
+    def for_element_clickable(
+        self, selector: str, timeout: Optional[float] = None
+    ) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             element = self.page.locator(selector)
             element.wait_for(state="visible", timeout=timeout * 1000)
@@ -141,7 +190,9 @@ class Waits(Frame):
             ) from e
 
     @auto_log
-    def for_text_present(self, text: str, timeout: float = 30.0) -> None:
+    def for_text_present(self, text: str, timeout: Optional[float] = None) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             self.page.wait_for_function(
                 f"() => document.body.textContent.includes('{text}')",
@@ -159,10 +210,12 @@ class Waits(Frame):
         self,
         frame_xpath: str,
         selector: str,
-        timeout: float = 30.0,
-        state: str = "visible",
+        timeout: Optional[float] = None,
+        state: Literal["attached", "detached", "hidden", "visible"] = "visible",
         idx_child_frame: Optional[int] = None,
     ) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
             element.wait_for(state=state, timeout=timeout * 1000)
@@ -176,7 +229,7 @@ class Waits(Frame):
         self,
         frame_xpath: str,
         selector: str,
-        timeout: float = 30.0,
+        timeout: Optional[float] = None,
         idx_child_frame: Optional[int] = None,
     ) -> None:
         self.for_element_on_frame(
@@ -188,9 +241,11 @@ class Waits(Frame):
         self,
         frame_xpath: str,
         selector: str,
-        timeout: float = 30.0,
+        timeout: Optional[float] = None,
         idx_child_frame: Optional[int] = None,
     ) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
             element.wait_for(state="hidden", timeout=timeout * 1000)
@@ -204,9 +259,11 @@ class Waits(Frame):
         self,
         frame_xpath: str,
         selector: str,
-        timeout: float = 30.0,
+        timeout: Optional[float] = None,
         idx_child_frame: Optional[int] = None,
     ) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             element = self._get_frame_element(frame_xpath, selector, idx_child_frame)
             element.wait_for(state="attached", timeout=timeout * 1000)
@@ -217,10 +274,17 @@ class Waits(Frame):
 
     @auto_log
     def for_frame_load(
-        self, frame_name: str, state: str = "load", timeout: float = 30.0
+        self,
+        frame_name: str,
+        state: Literal["domcontentloaded", "load", "networkidle"] = "load",
+        timeout: Optional[float] = None,
     ) -> None:
+        if timeout is None:
+            timeout = Config.TIMEOUT / 1000
         try:
             frame = self.page.frame(name=frame_name)
+            if not frame:
+                raise ElementError(f"Frame not found: {frame_name}")
             frame.wait_for_load_state(state=state, timeout=timeout * 1000)
         except Exception as e:
             raise ElementError(f"Frame did not load: {frame_name}", str(e)) from e

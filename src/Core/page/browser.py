@@ -1,6 +1,6 @@
 import re
-from lxml import html
-from typing import Any, List
+from lxml import html  # type: ignore[import-untyped]
+from typing import Any, List, Optional
 from playwright.sync_api import Page, Frame
 from src.Core import auto_log, AutomationError
 
@@ -93,7 +93,10 @@ class BrowserManager:
     @auto_log
     def get_frame_by_name(self, name: str) -> Frame:
         try:
-            return self.page.frame(name=name)
+            frame = self.page.frame(name=name)
+            if not frame:
+                raise AutomationError(f"Frame not found: {name}")
+            return frame
         except Exception as e:
             raise AutomationError(f"Failed to get frame: {name}", str(e)) from e
 
@@ -131,6 +134,8 @@ class BrowserManager:
     def match_by_regex_on_frame(self, frame_name: str, pattern: str) -> bool:
         try:
             frame = self.page.frame(name=frame_name)
+            if not frame:
+                raise AutomationError(f"Frame not found: {frame_name}")
             return bool(re.search(pattern, frame.content()))
         except Exception as e:
             raise AutomationError(
@@ -138,7 +143,7 @@ class BrowserManager:
             ) from e
 
     @auto_log
-    def extract_by_regex(self, pattern: str, group: int = None) -> str:
+    def extract_by_regex(self, pattern: str, group: Optional[int] = None) -> str:
         try:
             match = re.search(pattern, self.page.content())
             if match:
@@ -151,7 +156,7 @@ class BrowserManager:
 
     @auto_log
     def extract_by_regex_on_frame(
-        self, frame_name: str, pattern: str, group: int = None
+        self, frame_name: str, pattern: str, group: Optional[int] = None
     ) -> str:
         try:
             frames = self.page.frames
@@ -174,7 +179,7 @@ class BrowserManager:
         self, selector: str, path: str, full_page: bool = False
     ) -> None:
         try:
-            self.page.locator(selector).screenshot(path=path, full_page=full_page)
+            self.page.locator(selector).screenshot(path=path)
         except Exception as e:
             raise AutomationError(
                 f"Failed to screenshot element {selector}", str(e)
@@ -182,7 +187,11 @@ class BrowserManager:
 
     @auto_log
     def screenshot_element_on_frame(
-        self, frame_xpath: str, selector: str, path: str, idx_child_frame: int = None
+        self,
+        frame_xpath: str,
+        selector: str,
+        path: str,
+        idx_child_frame: Optional[int] = None,
     ) -> None:
         try:
             if frame_xpath == "" and idx_child_frame is None:
@@ -218,7 +227,7 @@ class BrowserManager:
         frame_xpath: str,
         selector: str,
         download_path: str,
-        idx_child_frame: int = None,
+        idx_child_frame: Optional[int] = None,
     ) -> str:
         try:
             if idx_child_frame is None:

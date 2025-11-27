@@ -22,12 +22,16 @@ class Frame:
                 return frame.locator(selector)
 
         # Case 3: Child frame by index
-        elif idx_latest_frame is None:
+        elif idx_latest_frame is None and idx_child_frame is not None:
             frames = self.page.frames
             child_frame = frames[1].child_frames
             return child_frame[idx_child_frame].locator(selector)
 
         # Case 4: Latest frame by index
-        else:
-            frames = self.page.frames[idx_latest_frame]
-            return frames.locator(selector)
+        elif idx_latest_frame is not None:
+            frames_list = self.page.frames
+            target_frame = frames_list[idx_latest_frame]
+            return target_frame.locator(selector)
+
+        # Fallback
+        return self.page.locator(selector)

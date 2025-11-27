@@ -1,16 +1,19 @@
 import base64
+from typing import Optional, Tuple
+
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from src.Core import auto_log, AutomationError
+
+from src.Core import AutomationError, auto_log
 
 
 class Crypto:
     @staticmethod
     @auto_log
     def encrypt(
-        plaintext: str, password: str, salt: bytes = None
-    ) -> tuple[bytes, bytes]:
+        plaintext: str, password: str, salt: Optional[bytes] = None
+    ) -> Tuple[bytes, bytes]:
         try:
             if salt is None:
                 salt = Fernet.generate_key()[:16]

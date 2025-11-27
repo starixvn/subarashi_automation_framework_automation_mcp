@@ -3,7 +3,7 @@ from .data import Data
 from .query import Query
 
 
-class DatabaseManager(Connection, Query, Data):
+class DatabaseManager(Connection, Query, Data):  # type: ignore[misc]
     def __init__(
         self,
         server_name: str = "",

@@ -1,20 +1,20 @@
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 from google.oauth2.service_account import Credentials
-from googleapiclient import discovery
-from googleapiclient.errors import HttpError
+from googleapiclient import discovery  # type: ignore[import-untyped]
+from googleapiclient.errors import HttpError  # type: ignore[import-untyped]
 
 from src.Core import auto_log, AutomationError
 from .files import Files
 
 
 class GoogleSheets:
-    def __init__(self, service_account_file: str = None):
+    def __init__(self, service_account_file: Optional[str] = None):
         self.service_account_file = (
             service_account_file or "config/secrets/client_secret.json"
         )
-        self.service = None
+        self.service: Any = None
         self._initialize_service()
 
     @auto_log
@@ -32,7 +32,7 @@ class GoogleSheets:
 
             credentials = Credentials.from_service_account_file(
                 self.service_account_file, scopes=scopes
-            )
+            )  # type: ignore[no-untyped-call]
 
             self.service = discovery.build("sheets", "v4", credentials=credentials)
         except Exception as e:
@@ -42,9 +42,11 @@ class GoogleSheets:
 
     @auto_log
     def get_sheet_values(
-        self, spreadsheet_id: str, sheet_name: str, range_name: str = None
+        self, spreadsheet_id: str, sheet_name: str, range_name: Optional[str] = None
     ) -> List[List[Any]]:
         try:
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
             if range_name:
                 full_range = f"{sheet_name}!{range_name}"
             else:
@@ -62,7 +64,7 @@ class GoogleSheets:
                 .execute()
             )
 
-            values = result.get("values", [])
+            values: List[List[Any]] = result.get("values", [])
             return values
         except HttpError as e:
             raise AutomationError("Failed to get sheet values", str(e)) from e
@@ -78,9 +80,9 @@ class GoogleSheets:
 
             if values:
                 df = pd.DataFrame(values)
-                date_columns = []
+                date_columns: List[str] = []
 
-                def convert_to_date(val):
+                def convert_to_date(val: Any) -> Any:
                     if isinstance(val, (int, float)):
                         try:
                             return (
@@ -110,7 +112,9 @@ class GoogleSheets:
         self, spreadsheet_id: str, sheet_name: str
     ) -> Dict[str, Any]:
         try:
-            result = (
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
+            result: Dict[str, Any] = (
                 self.service.spreadsheets()
                 .values()
                 .get(
@@ -129,7 +133,9 @@ class GoogleSheets:
         self, spreadsheet_id: str, sheet_name: str, row_data: List[Any]
     ) -> Dict[str, Any]:
         try:
-            result = (
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
+            result: Dict[str, Any] = (
                 self.service.spreadsheets()
                 .values()
                 .append(
@@ -151,21 +157,26 @@ class GoogleSheets:
         spreadsheet_id: str,
         sheet_name: str,
         data_list: List[List[Any]],
-        range_update: str = None,
+        range_update: Optional[str] = None,
     ) -> Dict[str, Any]:
         try:
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
+            final_range: str
             if range_update is None:
                 full_sheet_info = self.get_sheet_all_information(
                     spreadsheet_id, sheet_name
                 )
-                range_update = full_sheet_info.get("range", sheet_name)
+                final_range = full_sheet_info.get("range", sheet_name)
+            else:
+                final_range = range_update
 
-            result = (
+            result: Dict[str, Any] = (
                 self.service.spreadsheets()
                 .values()
                 .update(
                     spreadsheetId=spreadsheet_id,
-                    range=range_update,
+                    range=final_range,
                     valueInputOption="RAW",
                     body={"values": data_list},
                 )
@@ -230,10 +241,12 @@ class GoogleSheets:
         spreadsheet_id: str,
         sheet_name: str,
         values: List[List[Any]],
-        range_name: str = None,
+        range_name: Optional[str] = None,
         value_input_option: str = "RAW",
     ) -> Dict[str, Any]:
         try:
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
             if range_name:
                 full_range = f"{sheet_name}!{range_name}"
             else:
@@ -241,7 +254,7 @@ class GoogleSheets:
 
             body = {"values": values}
 
-            result = (
+            result: Dict[str, Any] = (
                 self.service.spreadsheets()
                 .values()
                 .update(
@@ -264,9 +277,11 @@ class GoogleSheets:
         self, spreadsheet_id: str, sheet_name: str, values: List[List[Any]]
     ) -> Dict[str, Any]:
         try:
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
             body = {"values": values}
 
-            result = (
+            result: Dict[str, Any] = (
                 self.service.spreadsheets()
                 .values()
                 .append(
@@ -286,15 +301,17 @@ class GoogleSheets:
 
     @auto_log
     def clear_sheet(
-        self, spreadsheet_id: str, sheet_name: str, range_name: str = None
+        self, spreadsheet_id: str, sheet_name: str, range_name: Optional[str] = None
     ) -> Dict[str, Any]:
         try:
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
             if range_name:
                 full_range = f"{sheet_name}!{range_name}"
             else:
                 full_range = sheet_name
 
-            result = (
+            result: Dict[str, Any] = (
                 self.service.spreadsheets()
                 .values()
                 .clear(spreadsheetId=spreadsheet_id, range=full_range)
@@ -310,7 +327,9 @@ class GoogleSheets:
     @auto_log
     def get_sheet_info(self, spreadsheet_id: str) -> Dict[str, Any]:
         try:
-            result = (
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
+            result: Dict[str, Any] = (
                 self.service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
             )
 
@@ -323,11 +342,13 @@ class GoogleSheets:
     @auto_log
     def create_sheet(self, spreadsheet_id: str, sheet_name: str) -> Dict[str, Any]:
         try:
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
             request_body = {
                 "requests": [{"addSheet": {"properties": {"title": sheet_name}}}]
             }
 
-            result = (
+            result: Dict[str, Any] = (
                 self.service.spreadsheets()
                 .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
                 .execute()
@@ -346,9 +367,11 @@ class GoogleSheets:
     @auto_log
     def delete_sheet(self, spreadsheet_id: str, sheet_id: int) -> Dict[str, Any]:
         try:
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
             request_body = {"requests": [{"deleteSheet": {"sheetId": sheet_id}}]}
 
-            result = (
+            result: Dict[str, Any] = (
                 self.service.spreadsheets()
                 .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
                 .execute()
@@ -371,7 +394,9 @@ class GoogleSheets:
         try:
             request_body = {"requests": requests}
 
-            result = (
+            if not self.service:
+                raise AutomationError("Google Sheets service not initialized")
+            result: Dict[str, Any] = (
                 self.service.spreadsheets()
                 .batchUpdate(spreadsheetId=spreadsheet_id, body=request_body)
                 .execute()
@@ -440,7 +465,7 @@ class GoogleSheets:
         sheet_name: str,
         test_name: str,
         status: str,
-        timestamp: str = None,
+        timestamp: Optional[str] = None,
     ) -> None:
         try:
             if not timestamp:

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from .assertions import Assertions
 from .crypto import Crypto
 from .files import Files
@@ -9,7 +11,7 @@ class UtilitiesManager(Assertions, Crypto, Files, Reports):
     def __init__(self) -> None:
         Assertions.__init__(self)
         Reports.__init__(self)
-        self._google_sheets = None
+        self._google_sheets: Optional[GoogleSheets] = None
 
     @property
     def google_sheets(self) -> GoogleSheets:

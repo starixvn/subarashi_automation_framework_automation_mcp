@@ -1,37 +1,40 @@
+from typing import Any, Dict
+
 from playwright.sync_api import Page
+
 from config.config import Config
 from src.Core import auto_log
-from src.Core.page import PageManager
 from src.Core.api import APIManager
 from src.Core.database import DatabaseManager
+from src.Core.page import PageManager
 from src.Core.utilities import UtilitiesManager
-
-from src.Interfaces import interface_login
-from src.Interfaces import interface_common
 from src.DataTest import data_login
+from src.Interfaces import interface_common, interface_login
 
-
-UI = {
+UI: Dict[str, Dict[str, Any]] = {
     "login_page": interface_login.ELEMENT_LOGIN_LAP[Config.LANGUAGE],
     "menu": interface_common.ELEMENT_MENU[Config.LANGUAGE],
 }
 
-DataSet = {
+DataSet: Dict[str, Dict[str, Any]] = {
     "login_page": data_login.DATA_LOGIN_LAP[Config.ENVIRONMENT],
     "login_page_lrf": data_login.DATA_LOGIN_LRF[Config.ENVIRONMENT],
 }
 
 
 class ActionCommon:
-    def __init__(self, page: Page):
-        self.page = PageManager(page)
-        self.api = APIManager(page.context.request)
-        self.database = DatabaseManager()
-        self.utils = UtilitiesManager()
+    def __init__(self, page: Page) -> None:
+        self.page: PageManager = PageManager(page)
+        self.api: APIManager = APIManager(page.context.request)
+        self.database: DatabaseManager = DatabaseManager()
+        self.utils: UtilitiesManager = UtilitiesManager()
+        self.lrfurl: str = ""
+        self.apiurl: str = ""
+        self.analyticsurl: str = ""
 
     @auto_log
-    def login(self):
-        decrypted_password = self.utils.decrypt(
+    def login(self) -> None:
+        decrypted_password: str = self.utils.decrypt(
             DataSet["login_page"]["encrypted"],
             DataSet["login_page"]["Password"],
             DataSet["login_page"]["salt"],
@@ -83,12 +86,12 @@ class ActionCommon:
         self.analyticsurl = Config.URLS[Config.SITE][Config.ENVIRONMENT]["analyticsurl"]
 
     @auto_log
-    def navigate_to_betting_ticket_center(self):
+    def navigate_to_betting_ticket_center(self) -> None:
         self.page.click(UI["menu"]["lnkBettingTicketCenter"])
         self.page.for_timeout(2)
 
     @auto_log
-    def navigate_to_dashboard(self):
+    def navigate_to_dashboard(self) -> None:
         self.page.click(UI["menu"]["lnkDashboard"])
         self.page.for_timeout(2)
-        self.page.for_element_visible("//iframe[@name='FunctionFrame']", timeout=15)
+        self.page.for_element_visible("//iframe[@name='FunctionFrame']", timeout=15.0)

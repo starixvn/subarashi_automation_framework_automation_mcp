@@ -1,13 +1,15 @@
-import pyodbc
-from typing import Optional, Dict, Any, List
-from src.Core import auto_log, retry, AutomationError
+from typing import Any, Dict, List, Optional
+
+import pyodbc  # type: ignore[import-not-found]
+
+from src.Core import AutomationError, auto_log, retry
 
 
 class Connection:
-    def __init__(self):
+    def __init__(self) -> None:
         self.connection: Optional[pyodbc.Connection] = None
         self.cursor: Optional[pyodbc.Cursor] = None
-        self.is_connected = False
+        self.is_connected: bool = False
 
     @auto_log
     @retry(max_attempts=3)
@@ -71,6 +73,8 @@ class Connection:
     def commit(self) -> None:
         if not self.is_connected:
             raise AutomationError("Not connected to database")
+        if not self.connection:
+            raise AutomationError("Connection is None")
         try:
             self.connection.commit()
         except Exception as e:
@@ -80,6 +84,8 @@ class Connection:
     def rollback(self) -> None:
         if not self.is_connected:
             raise AutomationError("Not connected to database")
+        if not self.connection:
+            raise AutomationError("Connection is None")
         try:
             self.connection.rollback()
         except Exception as e:
@@ -87,7 +93,7 @@ class Connection:
 
     @auto_log
     def get_connection_info(self) -> Dict[str, Any]:
-        if not self.is_connected:
+        if not self.is_connected or not self.connection:
             return {"connected": False}
         try:
             return {
@@ -102,7 +108,7 @@ class Connection:
     @auto_log
     def test_connection(self) -> bool:
         try:
-            if not self.is_connected:
+            if not self.is_connected or not self.cursor:
                 return False
             self.cursor.execute("SELECT 1")
             return True
@@ -113,6 +119,8 @@ class Connection:
     def get_server_version(self) -> str:
         if not self.is_connected:
             raise AutomationError("Not connected to database")
+        if not self.cursor:
+            raise AutomationError("Cursor is None")
         try:
             self.cursor.execute("SELECT @@VERSION")
             result = self.cursor.fetchone()
@@ -124,6 +132,8 @@ class Connection:
     def get_database_name(self) -> str:
         if not self.is_connected:
             raise AutomationError("Not connected to database")
+        if not self.cursor:
+            raise AutomationError("Cursor is None")
         try:
             self.cursor.execute("SELECT DB_NAME()")
             result = self.cursor.fetchone()
@@ -135,6 +145,8 @@ class Connection:
     def get_tables(self) -> List[str]:
         if not self.is_connected:
             raise AutomationError("Not connected to database")
+        if not self.cursor:
+            raise AutomationError("Cursor is None")
         try:
             self.cursor.execute(
                 "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'"

@@ -4,19 +4,16 @@ class AutomationError(Exception):
         self.details = details
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.details:
             return f"{self.message}: {self.details}"
         return self.message
 
 
-class ElementError(AutomationError):
-    ...
+class ElementError(AutomationError): ...
 
 
-class NavigationError(AutomationError):
-    ...
+class NavigationError(AutomationError): ...
 
 
-class ValidationError(AutomationError):
-    ...
+class ValidationError(AutomationError): ...

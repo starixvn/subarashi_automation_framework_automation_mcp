@@ -1,19 +1,21 @@
-from typing import Dict, Any
+from typing import Any, Dict, Optional
+
 from playwright.sync_api import APIRequestContext, APIResponse
-from src.Core import auto_log, retry, AutomationError
+
+from src.Core import AutomationError, auto_log, retry
 
 
 class Client:
-    def __init__(self, api_context: APIRequestContext):
-        self.api = api_context
+    def __init__(self, api_context: APIRequestContext) -> None:
+        self.api: APIRequestContext = api_context
 
     @auto_log
     def get(
         self,
         url: str,
-        path: str = None,
-        headers: Dict[str, str] = None,
-        params: Dict[str, Any] = None,
+        path: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        params: Optional[Dict[str, Any]] = None,
         timeout: int = 100000,
     ) -> APIResponse:
         try:
@@ -34,12 +36,12 @@ class Client:
     def post(
         self,
         url: str,
-        path: str = None,
-        headers: Dict[str, str] = None,
-        data: Any = None,
-        params: Dict[str, Any] = None,
-        form_data: Dict[str, Any] = None,
-        multipart: Dict[str, Any] = None,
+        path: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        data: Optional[Any] = None,
+        params: Optional[Dict[str, Any]] = None,
+        form_data: Optional[Dict[str, Any]] = None,
+        multipart: Optional[Dict[str, Any]] = None,
         timeout: int = 100000,
     ) -> APIResponse:
         try:
@@ -63,10 +65,10 @@ class Client:
     def put(
         self,
         url: str,
-        path: str = None,
-        headers: Dict[str, str] = None,
-        data: Any = None,
-        params: Dict[str, Any] = None,
+        path: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        data: Optional[Any] = None,
+        params: Optional[Dict[str, Any]] = None,
         timeout: int = 100000,
     ) -> APIResponse:
         try:
@@ -88,10 +90,10 @@ class Client:
     def patch(
         self,
         url: str,
-        path: str = None,
-        headers: Dict[str, str] = None,
-        data: Any = None,
-        params: Dict[str, Any] = None,
+        path: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        data: Optional[Any] = None,
+        params: Optional[Dict[str, Any]] = None,
         timeout: int = 100000,
     ) -> APIResponse:
         try:
@@ -113,9 +115,9 @@ class Client:
     def delete(
         self,
         url: str,
-        path: str = None,
-        headers: Dict[str, str] = None,
-        params: Dict[str, Any] = None,
+        path: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        params: Optional[Dict[str, Any]] = None,
         timeout: int = 100000,
     ) -> APIResponse:
         try:
@@ -135,9 +137,9 @@ class Client:
     def head(
         self,
         url: str,
-        path: str = None,
-        headers: Dict[str, str] = None,
-        params: Dict[str, Any] = None,
+        path: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
+        params: Optional[Dict[str, Any]] = None,
         timeout: int = 100000,
     ) -> APIResponse:
         try:
@@ -157,14 +159,14 @@ class Client:
     def options(
         self,
         url: str,
-        path: str = None,
-        headers: Dict[str, str] = None,
+        path: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None,
         timeout: int = 100000,
     ) -> APIResponse:
         try:
             full_url = url + path if path else url
             response = self.api.fetch(
-                url=full_url,
+                full_url,
                 method="OPTIONS",
                 headers=headers,
                 timeout=timeout,
@@ -175,9 +177,9 @@ class Client:
             raise AutomationError(f"OPTIONS request failed for {url}", str(e)) from e
 
     @auto_log
-    def request(self, method: str, url: str, **kwargs) -> APIResponse:
+    def request(self, method: str, url: str, **kwargs: Any) -> APIResponse:
         try:
-            response = self.api.fetch(url=url, method=method.upper(), **kwargs)
+            response = self.api.fetch(url, method=method.upper(), **kwargs)
             return response
         except Exception as e:
             raise AutomationError(

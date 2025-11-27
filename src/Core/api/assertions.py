@@ -1,10 +1,10 @@
 import re
-import jsonschema
+import jsonschema  # type: ignore[import-untyped]
 from typing import Any, Dict
 from playwright.sync_api import APIResponse
 from src.Core import auto_log, AutomationError
 from .extractor import Extractor
-from jsonpath_ng import parse
+from jsonpath_ng import parse  # type: ignore[import-untyped]
 
 
 class Assertions:

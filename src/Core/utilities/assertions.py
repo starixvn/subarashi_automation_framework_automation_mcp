@@ -1,16 +1,16 @@
 import re
 import os
-from typing import Any, List
+from typing import Any, List, Optional
 from src.Core import auto_log, AutomationError
 
 
 class Assertions:
-    def __init__(self):
+    def __init__(self) -> None:
         self.failed_test_cases: List[str] = []
 
     @auto_log
     def should_be_equal(
-        self, actual: Any, expected: Any, test_name: str = None
+        self, actual: Any, expected: Any, test_name: Optional[str] = None
     ) -> None:
         try:
             if actual != expected:
@@ -24,7 +24,7 @@ class Assertions:
 
     @auto_log
     def should_be_lower_than(
-        self, value: Any, expected: Any, test_name: str = None
+        self, value: Any, expected: Any, test_name: Optional[str] = None
     ) -> None:
         try:
             if value > expected:
@@ -40,7 +40,7 @@ class Assertions:
 
     @auto_log
     def should_be_greater_than_or_equal(
-        self, value: Any, expected: Any, test_name: str = None
+        self, value: Any, expected: Any, test_name: Optional[str] = None
     ) -> None:
         try:
             if value < expected:
@@ -54,7 +54,7 @@ class Assertions:
 
     @auto_log
     def should_be_not_equal(
-        self, actual: Any, expected: Any, test_name: str = None
+        self, actual: Any, expected: Any, test_name: Optional[str] = None
     ) -> None:
         try:
             if actual == expected:
@@ -68,7 +68,7 @@ class Assertions:
 
     @auto_log
     def should_not_contain(
-        self, original_data: str, text: str, test_name: str = None
+        self, original_data: str, text: str, test_name: Optional[str] = None
     ) -> None:
         try:
             if text in original_data:
@@ -80,7 +80,7 @@ class Assertions:
 
     @auto_log
     def should_contain(
-        self, original_data: str, text: str, test_name: str = None
+        self, original_data: str, text: str, test_name: Optional[str] = None
     ) -> None:
         try:
             if text not in original_data:
@@ -118,11 +118,11 @@ class Assertions:
     @auto_log
     def add_failed_test_case(self, test_name: str) -> None:
         try:
-            current_test = str(
-                re.search(
-                    "::(TestCase.*) ", os.getenv("PYTEST_CURRENT_TEST", "")
-                ).group(1)
-            ).replace("_", " ")
-            self.failed_test_cases.append(current_test)
+            match = re.search("::(TestCase.*) ", os.getenv("PYTEST_CURRENT_TEST", ""))
+            if match:
+                current_test = str(match.group(1)).replace("_", " ")
+                self.failed_test_cases.append(current_test)
+            else:
+                self.failed_test_cases.append(test_name)
         except Exception:
             self.failed_test_cases.append(test_name)

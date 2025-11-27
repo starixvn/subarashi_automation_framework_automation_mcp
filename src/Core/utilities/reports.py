@@ -1,28 +1,32 @@
-import os
 import json
 import logging
-import requests
+import os
 import ssl
-from typing import List
+from datetime import datetime
+from typing import List, Optional
+
+import requests  # type: ignore[import-untyped]
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
-from src.Core import auto_log, AutomationError
+
+from config.config import Config
+from src.Core import AutomationError, auto_log
+
 from .files import Files
 from .google_sheets import GoogleSheets
-from datetime import datetime
-from config.config import Config
 
 logger = logging.getLogger(__name__)
 
 
 class Reports:
-    def __init__(self, output_dir: str = "test-results/reports"):
-        self.output_dir = output_dir
+    def __init__(self, output_dir: str = "test-results/reports") -> None:
+        self.output_dir: str = output_dir
+        self.files: Files = Files()
         Files.create_directory(output_dir)
 
     @auto_log
     def prepare_test_message(
-        self, function_name: str, env: str, failed_cases: List[str] = None
+        self, function_name: str, env: str, failed_cases: Optional[List[str]] = None
     ) -> str:
         try:
             if failed_cases:

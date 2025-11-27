@@ -10,13 +10,17 @@ class Query:
 
     @auto_log
     def execute_select(
-        self, sql: str, params: Optional[tuple] = None
+        self, sql: str, params: Optional[tuple[Any, ...]] = None
     ) -> List[Dict[str, Any]]:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        if not cursor:
+            raise AutomationError("Cursor is None")
         try:
-            cursor = self.connection.cursor
             cursor.execute(sql, params or ())
+            if not cursor.description:
+                return []
             columns = [column[0] for column in cursor.description]
             results = []
             for row in cursor.fetchall():
@@ -26,37 +30,43 @@ class Query:
             raise AutomationError("Failed to execute SELECT query", str(e)) from e
 
     @auto_log
-    def execute_insert(self, sql: str, params: Optional[tuple] = None) -> int:
+    def execute_insert(self, sql: str, params: Optional[tuple[Any, ...]] = None) -> int:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        if not cursor:
+            raise AutomationError("Cursor is None")
         try:
-            cursor = self.connection.cursor
             cursor.execute(sql, params or ())
-            rows_affected = cursor.rowcount
+            rows_affected: int = cursor.rowcount
             return rows_affected
         except Exception as e:
             raise AutomationError("Failed to execute INSERT query", str(e)) from e
 
     @auto_log
-    def execute_update(self, sql: str, params: Optional[tuple] = None) -> int:
+    def execute_update(self, sql: str, params: Optional[tuple[Any, ...]] = None) -> int:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        if not cursor:
+            raise AutomationError("Cursor is None")
         try:
-            cursor = self.connection.cursor
             cursor.execute(sql, params or ())
-            rows_affected = cursor.rowcount
+            rows_affected: int = cursor.rowcount
             return rows_affected
         except Exception as e:
             raise AutomationError("Failed to execute UPDATE query", str(e)) from e
 
     @auto_log
-    def execute_delete(self, sql: str, params: Optional[tuple] = None) -> int:
+    def execute_delete(self, sql: str, params: Optional[tuple[Any, ...]] = None) -> int:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        if not cursor:
+            raise AutomationError("Cursor is None")
         try:
-            cursor = self.connection.cursor
             cursor.execute(sql, params or ())
-            rows_affected = cursor.rowcount
+            rows_affected: int = cursor.rowcount
             return rows_affected
         except Exception as e:
             raise AutomationError("Failed to execute DELETE query", str(e)) from e
@@ -65,16 +75,19 @@ class Query:
     def query(self, sql: str, query_type: str = "select") -> Any:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        conn = self.connection.connection
+        if not cursor or not conn:
+            raise AutomationError("Cursor or Connection is None")
         try:
-            cursor = self.connection.cursor
             cursor.execute(sql)
             if query_type.lower() == "select":
                 return cursor.fetchall()
             else:
-                self.connection.connection.commit()
+                conn.commit()
                 return cursor.rowcount
         except Exception as e:
-            self.connection.connection.rollback()
+            conn.rollback()
             raise AutomationError(
                 f"Failed to execute {query_type} query", str(e)
             ) from e
@@ -83,9 +96,13 @@ class Query:
     def query_and_get_all(self, sql: str) -> List[Dict[str, Any]]:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        if not cursor:
+            raise AutomationError("Cursor is None")
         try:
-            cursor = self.connection.cursor
             cursor.execute(sql)
+            if not cursor.description:
+                return []
             columns = [column[0] for column in cursor.description]
             results = []
             for row in cursor.fetchall():
@@ -101,13 +118,18 @@ class Query:
     def get_value_in_column(self, sql: str, column_name: str) -> List[str]:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        if not cursor:
+            raise AutomationError("Cursor is None")
         try:
-            cursor = self.connection.cursor
             cursor.execute(sql)
-            values = []
+            values: List[str] = []
             for row in cursor.fetchall():
                 value = getattr(row, column_name, None)
-                values.append(str(value) if value is not None else None)
+                if value is not None:
+                    values.append(str(value))
+                else:
+                    values.append("")
             return values
         except Exception as e:
             raise AutomationError(
@@ -140,10 +162,15 @@ class Query:
             sql = f"INSERT INTO {table_name} ({column_names}) VALUES ({value_list})"
 
             cursor = self.connection.cursor
+            conn = self.connection.connection
+            if not cursor or not conn:
+                raise AutomationError("Cursor or Connection is None")
             cursor.execute(sql)
-            self.connection.connection.commit()
+            conn.commit()
         except Exception as e:
-            self.connection.connection.rollback()
+            conn_rollback = self.connection.connection
+            if conn_rollback:
+                conn_rollback.rollback()
             raise AutomationError(
                 f"Failed to insert data into {table_name}", str(e)
             ) from e
@@ -170,9 +197,12 @@ class Query:
             for _ in range(iterations):
                 try:
                     cursor = self.connection.cursor
+                    conn = self.connection.connection
+                    if not cursor or not conn:
+                        raise AutomationError("Cursor or Connection is None")
                     cursor.execute(sql_content)
                     data = cursor.fetchall()
-                    self.connection.connection.commit()
+                    conn.commit()
 
                     for row in data:
                         result = [row[0], row[1]] if len(row) >= 2 else list(row)
@@ -180,7 +210,9 @@ class Query:
                         if len(row) > 0 and row[0] > 0:
                             break
                 except Exception:
-                    self.connection.connection.rollback()
+                    conn_rollback = self.connection.connection
+                    if conn_rollback:
+                        conn_rollback.rollback()
 
             return results
         except Exception as e:
@@ -190,13 +222,14 @@ class Query:
 
     @auto_log
     def execute_stored_procedure(
-        self, procedure_name: str, params: Optional[tuple] = None
+        self, procedure_name: str, params: Optional[tuple[Any, ...]] = None
     ) -> List[Dict[str, Any]]:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        if not cursor:
+            raise AutomationError("Cursor is None")
         try:
-            cursor = self.connection.cursor
-
             if params:
                 cursor.execute(
                     f"EXEC {procedure_name} {','.join(['?' for _ in params])}", params
@@ -221,6 +254,9 @@ class Query:
     def execute_batch(self, queries: List[Dict[str, Any]]) -> List[int]:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        if not cursor:
+            raise AutomationError("Cursor is None")
         results = []
         try:
             for query_info in queries:
@@ -230,7 +266,6 @@ class Query:
                 if not sql:
                     raise AutomationError("SQL query is required in batch")
 
-                cursor = self.connection.cursor
                 cursor.execute(sql, params or ())
                 results.append(cursor.rowcount)
 
@@ -258,7 +293,7 @@ class Query:
             ) from e
 
     @auto_log
-    def count_records(self, table_name: str, where_clause: str = None) -> int:
+    def count_records(self, table_name: str, where_clause: Optional[str] = None) -> int:
         try:
             sql = f"SELECT COUNT(*) as count FROM {table_name}"
             if where_clause:
@@ -272,11 +307,13 @@ class Query:
             ) from e
 
     @auto_log
-    def execute_scalar(self, sql: str, params: Optional[tuple] = None) -> Any:
+    def execute_scalar(self, sql: str, params: Optional[tuple[Any, ...]] = None) -> Any:
         if not self.connection.is_connected:
             raise AutomationError("Not connected to database")
+        cursor = self.connection.cursor
+        if not cursor:
+            raise AutomationError("Cursor is None")
         try:
-            cursor = self.connection.cursor
             cursor.execute(sql, params or ())
             row = cursor.fetchone()
             return row[0] if row else None

@@ -1,6 +1,6 @@
 import os
 import json
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Union
 from src.Core import auto_log, AutomationError
@@ -33,7 +33,7 @@ class Files:
     def read_json(file_path: str) -> Dict[str, Any]:
         try:
             with open(file_path, "r", encoding="utf-8") as file:
-                data = json.load(file)
+                data: Dict[str, Any] = json.load(file)
             return data
         except Exception as e:
             raise AutomationError(f"Failed to read JSON file {file_path}", str(e))
@@ -116,9 +116,11 @@ class Files:
     ) -> Union[str, List[Any]]:
         try:
             if row_index == -1:
-                return sheet.iloc[start_row:, column_index].tolist()
+                result: List[Any] = sheet.iloc[start_row:, column_index].tolist()
+                return result
             elif column_index == -1:
-                return sheet.iloc[row_index].tolist()
+                result_list: List[Any] = sheet.iloc[row_index].tolist()
+                return result_list
             else:
                 value = sheet.iloc[row_index, column_index]
                 if pd.isna(value):
@@ -146,7 +148,7 @@ class Files:
     @staticmethod
     @auto_log
     def remove_file(
-        file_path: str, root_dir: str = None, subfolder: str = "Excel"
+        file_path: str, root_dir: Optional[str] = None, subfolder: str = "Excel"
     ) -> None:
         try:
             if root_dir and subfolder:
@@ -204,7 +206,7 @@ class Files:
 
     @staticmethod
     @auto_log
-    def list_files(directory_path: str, extension: str = None) -> List[str]:
+    def list_files(directory_path: str, extension: Optional[str] = None) -> List[str]:
         try:
             if not os.path.exists(directory_path):
                 return []

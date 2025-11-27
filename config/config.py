@@ -8,6 +8,7 @@ class Config:
     SITE = "lap"
     LANGUAGE = "en"
     HEADLESS = False
+    TIMEOUT = 30000  # 30 seconds
     VIEWPORT_WIDTH = 1280
     VIEWPORT_HEIGHT = 720
     SLACK_BOT_TOKEN = "xoxb-8352731735536-8948054884291-ZWQ933ANuC1mc4eoRxDp6g5h"
@@ -26,10 +27,12 @@ class Config:
     ALLURE_BATCH_FILE = TEST_RESULTS_DIR / "start_allure.bat"
 
     # Allure Configuration
-    ALLURE_ENABLED = True
+    ALLURE_ENABLED = (
+        True  # Generate Allure results + auto-open after test run (local only)
+    )
     ALLURE_REPORT_URL = None  # Set via CLI --allure-report-url or Jenkins env
-    
-    URLS: ClassVar[dict[str, dict[str, str]]] = {
+
+    URLS: ClassVar[dict[str, dict[str, dict[str, str]]]] = {
         "lap": {
             "local": {
                 "url": "https://lap.nexdev.net/LAP/12bet?Language=en",
@@ -65,7 +68,7 @@ class Config:
         },
     }
 
-    CREDENTIALS_DATABASE: ClassVar[dict[str, dict[str, dict[str, str]]]] = {
+    CREDENTIALS_DATABASE: ClassVar[dict[str, dict[str, str]]] = {
         "Username": {
             "local": "testteam",
         },

@@ -1,9 +1,12 @@
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, TYPE_CHECKING
 from src.Core import auto_log, AutomationError
+
+if TYPE_CHECKING:
+    from .query import Query
 
 
 class Data:
-    def __init__(self, query):
+    def __init__(self, query: "Query") -> None:
         self.query = query
 
     @auto_log
@@ -17,7 +20,7 @@ class Data:
             values = list(data.values())
             placeholders = ",".join("?" * len(values))
             sql = f"INSERT INTO {schema}.{table} ({','.join(columns)}) VALUES ({placeholders})"
-            affected_rows = self.query.execute_insert(sql, tuple(values))
+            affected_rows: int = self.query.execute_insert(sql, tuple(values))
             return affected_rows
         except Exception as e:
             raise AutomationError(
@@ -66,10 +69,16 @@ class Data:
             value_list = ", ".join(values)
             sql = f"INSERT INTO {table_name} ({column_names}) VALUES ({value_list})"
 
-            self.query.connection.cursor.execute(sql)
-            self.query.connection.connection.commit()
+            cursor = self.query.connection.cursor
+            conn = self.query.connection.connection
+            if not cursor or not conn:
+                raise AutomationError("Cursor or Connection is None")
+            cursor.execute(sql)
+            conn.commit()
         except Exception as e:
-            self.query.connection.connection.rollback()
+            conn_rollback = self.query.connection.connection
+            if conn_rollback:
+                conn_rollback.rollback()
             raise AutomationError(
                 f"Failed to insert data into {table_name}", str(e)
             ) from e
@@ -80,7 +89,7 @@ class Data:
         table: str,
         data: Dict[str, Any],
         where_clause: str,
-        where_params: Optional[tuple] = None,
+        where_params: Optional[tuple[Any, ...]] = None,
         schema: str = "dbo",
     ) -> int:
         if not data:
@@ -91,7 +100,7 @@ class Data:
             sql = f"UPDATE {schema}.{table} SET {','.join(set_clauses)} WHERE {where_clause}"
             if where_params:
                 values.extend(where_params)
-            affected_rows = self.query.execute_update(sql, tuple(values))
+            affected_rows: int = self.query.execute_update(sql, tuple(values))
             return affected_rows
         except Exception as e:
             raise AutomationError(f"Failed to update records in {table}", str(e)) from e
@@ -101,12 +110,12 @@ class Data:
         self,
         table: str,
         where_clause: str,
-        where_params: Optional[tuple] = None,
+        where_params: Optional[tuple[Any, ...]] = None,
         schema: str = "dbo",
     ) -> int:
         try:
             sql = f"DELETE FROM {schema}.{table} WHERE {where_clause}"
-            affected_rows = self.query.execute_delete(sql, where_params)
+            affected_rows: int = self.query.execute_delete(sql, where_params)
             return affected_rows
         except Exception as e:
             raise AutomationError(
@@ -119,12 +128,12 @@ class Data:
         table: str,
         columns: str = "*",
         where_clause: str = "1=1",
-        where_params: Optional[tuple] = None,
+        where_params: Optional[tuple[Any, ...]] = None,
         schema: str = "dbo",
     ) -> List[Dict[str, Any]]:
         try:
             sql = f"SELECT {columns} FROM {schema}.{table} WHERE {where_clause}"
-            records = self.query.execute_select(sql, where_params)
+            records: List[Dict[str, Any]] = self.query.execute_select(sql, where_params)
             return records
         except Exception as e:
             raise AutomationError(f"Failed to get records from {table}", str(e)) from e
@@ -134,7 +143,7 @@ class Data:
         self,
         table: str,
         where_clause: str = "1=1",
-        where_params: Optional[tuple] = None,
+        where_params: Optional[tuple[Any, ...]] = None,
         schema: str = "dbo",
     ) -> int:
         try:
@@ -150,7 +159,10 @@ class Data:
     def truncate_table(self, table: str, schema: str = "dbo") -> None:
         try:
             sql = f"TRUNCATE TABLE {schema}.{table}"
-            self.query.connection.cursor.execute(sql)
+            cursor = self.query.connection.cursor
+            if not cursor:
+                raise AutomationError("Cursor is None")
+            cursor.execute(sql)
         except Exception as e:
             raise AutomationError(f"Failed to truncate table {table}", str(e)) from e
 
@@ -160,7 +172,7 @@ class Data:
         source_table: str,
         backup_table: str,
         where_clause: str = "1=1",
-        where_params: Optional[tuple] = None,
+        where_params: Optional[tuple[Any, ...]] = None,
         schema: str = "dbo",
     ) -> int:
         try:
@@ -172,7 +184,7 @@ class Data:
                 SELECT * FROM {schema}.{source_table}
                 WHERE {where_clause}
             """
-            affected_rows = self.query.execute_insert(sql, where_params)
+            affected_rows: int = self.query.execute_insert(sql, where_params)
             return affected_rows
         except Exception as e:
             raise AutomationError(

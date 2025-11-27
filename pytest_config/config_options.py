@@ -54,6 +54,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     if is_ci:
         return
 
+    if session.testscollected == 0:
+        return
+
+    if session.testsfailed + session.testscollected == 0:
+        return
+
     if not Config.ALLURE_RESULTS_DIR.exists() or not list(
         Config.ALLURE_RESULTS_DIR.glob("*.json")
     ):

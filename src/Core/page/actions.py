@@ -294,6 +294,8 @@ class Actions(Frame):
     def get_inner_html_on_frame_by_name(self, frame_name: str, selector: str) -> str:
         try:
             frame = self.page.frame(name=frame_name)
+            if not frame:
+                raise ElementError(f"Frame not found: {frame_name}")
             return frame.inner_html(selector)
         except Exception as e:
             raise ElementError(

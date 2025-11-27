@@ -1,6 +1,6 @@
 import json
 import re
-from jsonpath_ng import parse
+from jsonpath_ng import parse  # type: ignore[import-untyped]
 from typing import Optional, Any, Dict, List
 from playwright.sync_api import APIResponse
 from src.Core import auto_log, AutomationError
@@ -19,7 +19,8 @@ class Extractor:
     @auto_log
     def json(response: APIResponse) -> Dict[str, Any]:
         try:
-            return response.json()
+            result: Dict[str, Any] = response.json()
+            return result
         except Exception as e:
             raise AutomationError("Failed to extract JSON from response", str(e)) from e
 
@@ -109,7 +110,8 @@ class Extractor:
     @auto_log
     def json_string_to_dict(json_string: str) -> Dict[str, Any]:
         try:
-            return json.loads(json_string)
+            result: Dict[str, Any] = json.loads(json_string)
+            return result
         except Exception as e:
             raise AutomationError(
                 "Failed to convert JSON string to dictionary", str(e)
@@ -174,13 +176,20 @@ class Extractor:
     @auto_log
     def cookies(response: APIResponse) -> Dict[str, str]:
         try:
-            cookies = {}
-            set_cookie_headers = response.headers.get_all("set-cookie") or []
-            for cookie_header in set_cookie_headers:
-                if "=" in cookie_header:
-                    name, value = cookie_header.split("=", 1)
-                    value = value.split(";")[0]
-                    cookies[name.strip()] = value.strip()
+            cookies: Dict[str, str] = {}
+            headers_dict = dict(response.headers)
+            set_cookie_header = headers_dict.get("set-cookie", "")
+            if set_cookie_header:
+                cookie_headers = (
+                    [set_cookie_header]
+                    if isinstance(set_cookie_header, str)
+                    else set_cookie_header
+                )
+                for cookie_header in cookie_headers:
+                    if "=" in cookie_header:
+                        name, value = cookie_header.split("=", 1)
+                        value = value.split(";")[0]
+                        cookies[name.strip()] = value.strip()
             return cookies
         except Exception as e:
             raise AutomationError("Failed to extract cookies", str(e)) from e
