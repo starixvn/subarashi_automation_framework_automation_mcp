@@ -217,54 +217,6 @@ if exist "test-results\allure-results\*.json" (
 
 echo.
 echo =========================================
-echo STEP 7: Generate Allure HTML Report
-echo =========================================
-
-if exist "test-results\allure-results\*.json" (
-    echo Generating Allure HTML report...
-    
-    REM Add allure to PATH for this session
-    set "PATH=%APPDATA%\npm;%PATH%"
-    
-    REM Try to find allure command
-    where allure >nul 2>&1
-    if %ERRORLEVEL% EQU 0 (
-        echo Found Allure in PATH
-        call allure generate test-results\allure-results -o test-results\allure-report --clean
-        
-        if %ERRORLEVEL% EQU 0 (
-            echo [SUCCESS] Allure HTML report generated successfully
-            echo Report location: test-results\allure-report\index.html
-            echo.
-            echo To view the report:
-            echo 1. Download the allure-report folder from Jenkins workspace
-            echo 2. Open index.html in your browser
-            echo    OR
-            echo 3. Use Jenkins HTML Publisher plugin to view directly
-        ) else (
-            echo [WARNING] Failed to generate Allure report
-        )
-    ) else if exist "%APPDATA%\npm\allure.cmd" (
-        echo Found Allure at: %APPDATA%\npm\allure.cmd
-        call "%APPDATA%\npm\allure.cmd" generate test-results\allure-results -o test-results\allure-report --clean
-        
-        if %ERRORLEVEL% EQU 0 (
-            echo [SUCCESS] Allure HTML report generated successfully
-            echo Report location: test-results\allure-report\index.html
-        ) else (
-            echo [WARNING] Failed to generate Allure report
-        )
-    ) else (
-        echo [WARNING] Allure command not found
-        echo Allure results are available at: test-results\allure-results\
-        echo You can generate report locally using: allure serve test-results\allure-results
-    )
-) else (
-    echo [WARNING] No Allure results found to generate report
-)
-
-echo.
-echo =========================================
 echo Build Step Finished
 echo =========================================
 
