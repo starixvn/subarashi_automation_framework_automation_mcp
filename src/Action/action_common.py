@@ -65,7 +65,8 @@ class ActionCommon:
             "//div[@class='widgetbox preferences_setting']//a[contains(@class,'btn btn-ok')]"
         )
 
-    def getExternalServerName(self):
+    @auto_log
+    def getExternalServerName(self) -> None:
         res = self.api.get(
             url=Config.URLS[Config.SITE][Config.ENVIRONMENT]["url"],
             path=UI["login_page"]["lnkAccessBTC"],

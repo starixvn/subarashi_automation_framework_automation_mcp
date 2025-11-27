@@ -88,6 +88,7 @@ ignore = [
     "N813",   # Camelcase imported as lowercase
     "N806",   # Variable in function should be lowercase
     "N802",   # Function name should be lowercase (TestCase naming)
+    "F403",   # Module imported but unused
 ]
 
 [tool.black]

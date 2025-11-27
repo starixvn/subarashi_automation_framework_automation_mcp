@@ -1,6 +1,6 @@
 import logging
+import allure
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Generator
 
 import pytest
@@ -11,19 +11,12 @@ logger = logging.getLogger(__name__)
 test_results: list[dict[str, Any]] = []
 
 
-# ============================================================================
-# TEST EXECUTION HOOKS
-# ============================================================================
-
-
 @pytest.fixture(autouse=True)
 def test_execution_wrapper(
     request: pytest.FixtureRequest,
 ) -> Generator[None, None, None]:
     test_name = request.node.name
     start_time = datetime.now()
-
-    logger.info(f"[START] {test_name}")
 
     yield
 
@@ -32,8 +25,6 @@ def test_execution_wrapper(
     if hasattr(request.node, "rep_call") and request.node.rep_call.failed:
         logger.error(f"[FAIL] {test_name} - Duration: {duration:.2f}s")
         _handle_test_failure(request, test_name)
-    else:
-        logger.info(f"[PASS] {test_name} - Duration: {duration:.2f}s")
 
 
 def _handle_test_failure(request: pytest.FixtureRequest, test_name: str) -> None:
@@ -55,26 +46,46 @@ def _handle_test_failure(request: pytest.FixtureRequest, test_name: str) -> None
 
 def _take_failure_screenshot(page: Page, test_name: str) -> str:
     try:
-        screenshot_dir = Path("test-results/screenshots")
-        screenshot_dir.mkdir(parents=True, exist_ok=True)
+        Config.SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        screenshot_path = screenshot_dir / f"{test_name}_failure_{timestamp}.png"
+        screenshot_path = (
+            Config.SCREENSHOTS_DIR / f"{test_name}_failure_{timestamp}.png"
+        )
 
         page.screenshot(
             path=str(screenshot_path), full_page=Config.FULL_PAGE_SCREENSHOT
         )
 
-        logger.error(f"Failure screenshot: {screenshot_path}")
+        if Config.ALLURE_ENABLED:
+            try:
+                with open(screenshot_path, "rb") as f:
+                    allure.attach(
+                        f.read(),
+                        name=f"Screenshot: {test_name}",
+                        attachment_type=allure.attachment_type.PNG,
+                    )
+
+                page_html = page.content()
+                allure.attach(
+                    page_html,
+                    name=f"Page HTML: {test_name}",
+                    attachment_type=allure.attachment_type.HTML,
+                )
+
+                page_url = page.url
+                allure.attach(
+                    page_url,
+                    name="Page URL",
+                    attachment_type=allure.attachment_type.URI_LIST,
+                )
+            except ImportError:
+                logger.warning("Allure enabled but not installed")
+
         return str(screenshot_path)
     except Exception as e:
         logger.error(f"Failed to take screenshot: {e}")
         return ""
-
-
-# ============================================================================
-# TEST RESULT COLLECTION
-# ============================================================================
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -86,11 +97,33 @@ def pytest_runtest_makereport(
 
     setattr(item, "rep_" + rep.when, rep)
 
+    if Config.ALLURE_ENABLED and rep.when == "call":
+        try:
+            import allure
+
+            if hasattr(item, "cls") and item.cls:
+                allure.dynamic.feature(item.cls.__name__)
+
+            tc_marker = item.get_closest_marker("tc_id")
+            if tc_marker:
+                tc_id = tc_marker.args[0] if tc_marker.args else "Unknown"
+                allure.dynamic.label("tc_id", tc_id)
+                allure.dynamic.link(
+                    f"https://docs.google.com/spreadsheets/d/{Config.GOOGLE_SHEETS_ID}",
+                    name=f"Test Case: {tc_id}",
+                )
+
+            allure.dynamic.parameter("Environment", Config.ENVIRONMENT)
+            allure.dynamic.parameter("Site", Config.SITE)
+            allure.dynamic.parameter("Headless", Config.HEADLESS)
+        except ImportError:
+            logger.warning("Allure enabled but not installed")
+
     if rep.when in ("call", "setup"):
         test_result = {
             "name": item.name,
             "class": item.cls.__name__ if item.cls else "Function",
-            "file": str(item.fspath.basename),  # type: ignore[attr-defined]
+            "file": str(item.fspath.basename),
             "status": "passed" if rep.passed else "failed" if rep.failed else "skipped",
             "duration": rep.duration,
             "timestamp": datetime.now().isoformat(),

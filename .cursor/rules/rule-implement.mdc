@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+
+When implementing with Python and Playwright, always strictly follow all the rules below:
+
+- When importing libraries, modules, methods, etc., imports must always be placed at the top of the file.
+- Name folders, files, modules, methods, functions, parameters, etc. without prefixes or suffixes, and use snake_case naming convention for professional structure.
+- Follow the current implementation structure and style; do not modify the existing automation framework’s structure or style.
+- Use the Page Object Model (POM) for Interfaces and Data. Each page must correspond to a single file to ensure easy maintenance and upgrades.
+- Action methods will contain multiple test cases belonging to one TestSuite.
+- TestSuite methods will contain TestSuite files, and each file can run multiple test cases.
+- After implementation, NEVER create .md, .txt, or any additional files; only provide explanations within the chat.

@@ -1,7 +1,10 @@
 import functools
+import allure
 import logging
 import time
 from typing import Callable, TypeVar, Any
+
+from config.config import Config
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -48,26 +51,44 @@ def auto_log(func: F) -> F:
             class_name = f"{args[0].__class__.__name__}."
 
         full_name = f"{class_name}{func_name}"
+        step_name = full_name.replace("_", " ").title()
 
         logger.debug(f"[ENTER] {full_name}")
-
         start_time = time.time()
 
-        try:
-            result = func(*args, **kwargs)
+        def execute_with_logging():
+            try:
+                result = func(*args, **kwargs)
+                duration = (time.time() - start_time) * 1000
+                logger.debug(f"[EXIT] {full_name} - Duration: {duration:.2f}ms")
+                return result
+            except Exception as e:
+                duration = (time.time() - start_time) * 1000
+                logger.error(
+                    f"[ERROR] {full_name} - Duration: {duration:.2f}ms - Error: {e}"
+                )
 
-            duration = (time.time() - start_time) * 1000
+                if Config.ALLURE_ENABLED:
+                    try:
+                        allure.attach(
+                            str(e),
+                            name=f"Error in {step_name}",
+                            attachment_type=allure.attachment_type.TEXT,
+                        )
+                    except ImportError:
+                        logger.warning("Allure enabled but not installed")
+                raise
 
-            logger.debug(f"[EXIT] {full_name} - Duration: {duration:.2f}ms")
-
-            return result
-
-        except Exception as e:
-            duration = (time.time() - start_time) * 1000
-
-            logger.error(
-                f"[ERROR] {full_name} - Duration: {duration:.2f}ms - Error: {e}"
-            )
-            raise
+        if Config.ALLURE_ENABLED:
+            try:
+                with allure.step(step_name):
+                    return execute_with_logging()
+            except ImportError:
+                logger.warning(
+                    "Allure enabled but not installed - falling back to logging only"
+                )
+                return execute_with_logging()
+        else:
+            return execute_with_logging()
 
     return wrapper

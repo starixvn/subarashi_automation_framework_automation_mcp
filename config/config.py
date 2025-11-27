@@ -11,8 +11,8 @@ class Config:
     HEADLESS = False
     TIMEOUT = 30
     DEBUG = False
-    VIEWPORT_WIDTH = 1920
-    VIEWPORT_HEIGHT = 1080
+    VIEWPORT_WIDTH = 1280
+    VIEWPORT_HEIGHT = 720
     TELEGRAM_BOT_TOKEN = ""
     TELEGRAM_CHAT_IDS = []
     TEAMS_CONVERSATION_IDS = []
@@ -25,6 +25,20 @@ class Config:
     FULL_PAGE_SCREENSHOT = True
     NOTIFY_ON_FAILURE = True
     NOTIFY_PASS_RATE_THRESHOLD = 95.0
+
+    # Test Results Directories
+    TEST_RESULTS_DIR = ROOT_DIR / "test-results"
+    SCREENSHOTS_DIR = TEST_RESULTS_DIR / "screenshots"
+    REPORTS_DIR = TEST_RESULTS_DIR / "reports"
+    LOGS_DIR = TEST_RESULTS_DIR / "logs"
+    ALLURE_RESULTS_DIR = TEST_RESULTS_DIR / "allure-results"
+    ALLURE_BATCH_FILE = TEST_RESULTS_DIR / "start_allure.bat"
+
+    # Allure Configuration
+    ALLURE_ENABLED = (
+        True  # Enable/disable Allure (report generation + auto-open on local)
+    )
+    ALLURE_REPORT_URL = None  # Set via CLI --allure-report-url or Jenkins env
     URLS: ClassVar[dict[str, dict[str, str]]] = {
         "lap": {
             "local": {

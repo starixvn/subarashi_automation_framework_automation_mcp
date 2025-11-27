@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import Generator, Any
 
 import pytest
@@ -56,18 +55,12 @@ def auto_login(page: Page) -> Generator[None, None, None]:
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment() -> Generator[None, None, None]:
-    logger.info("Setting up test environment")
     for directory in [
-        "test-results/screenshots",
-        "test-results/reports",
-        "test-results/logs",
-        "test-results/failures",
+        Config.SCREENSHOTS_DIR,
+        Config.REPORTS_DIR,
+        Config.LOGS_DIR,
+        Config.ALLURE_RESULTS_DIR,
     ]:
-        Path(directory).mkdir(parents=True, exist_ok=True)
-    logger.info(
-        f"Environment: {Config.ENVIRONMENT} | Site: {Config.SITE} | Headless: {Config.HEADLESS}"
-    )
+        directory.mkdir(parents=True, exist_ok=True)
 
     yield
-
-    logger.info("Test environment cleanup completed")

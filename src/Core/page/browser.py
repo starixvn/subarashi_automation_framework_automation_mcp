@@ -1,3 +1,5 @@
+import re
+from lxml import html
 from typing import Any, List
 from playwright.sync_api import Page, Frame
 from src.Core import auto_log, AutomationError
@@ -119,8 +121,6 @@ class BrowserManager:
     @auto_log
     def match_by_regex(self, pattern: str) -> bool:
         try:
-            import re
-
             return bool(re.search(pattern, self.page.content()))
         except Exception as e:
             raise AutomationError(
@@ -130,8 +130,6 @@ class BrowserManager:
     @auto_log
     def match_by_regex_on_frame(self, frame_name: str, pattern: str) -> bool:
         try:
-            import re
-
             frame = self.page.frame(name=frame_name)
             return bool(re.search(pattern, frame.content()))
         except Exception as e:
@@ -142,11 +140,9 @@ class BrowserManager:
     @auto_log
     def extract_by_regex(self, pattern: str, group: int = None) -> str:
         try:
-            import re
-
             match = re.search(pattern, self.page.content())
             if match:
-                return match.group(group) if group is not None else match.string
+                return match.group(group) if group is not None else match.group(0)
             return ""
         except Exception as e:
             raise AutomationError(
@@ -158,8 +154,6 @@ class BrowserManager:
         self, frame_name: str, pattern: str, group: int = None
     ) -> str:
         try:
-            import re
-
             frames = self.page.frames
             content = frames[1].content() if len(frames) > 1 else ""
             match = re.search(pattern, content)
@@ -252,8 +246,6 @@ class BrowserManager:
     @auto_log
     def extract_document(self, selector: str) -> Any:
         try:
-            from lxml import html
-
             text = self.page.inner_html(selector)
             return html.fromstring(text)
         except Exception as e:

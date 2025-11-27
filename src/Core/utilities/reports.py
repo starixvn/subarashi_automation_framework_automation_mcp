@@ -9,6 +9,7 @@ from src.Core import auto_log, AutomationError
 from .files import Files
 from .google_sheets import GoogleSheets
 from datetime import datetime
+from config.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +90,6 @@ class Reports:
     @auto_log
     def send_message_to_slack(self, message: str) -> None:
         try:
-            from config.config import Config
-
             if not Config.SLACK_BOT_TOKEN:
                 logger.warning(
                     "SLACK_BOT_TOKEN not configured, skipping Slack notification"
