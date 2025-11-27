@@ -8,7 +8,7 @@ class Config:
     SITE = "lap"
     LANGUAGE = "en"
     BROWSER = "chromium"
-    HEADLESS = False
+    HEADLESS = True
     TIMEOUT = 30
     DEBUG = False
     VIEWPORT_WIDTH = 1280
