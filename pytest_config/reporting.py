@@ -61,17 +61,13 @@ def _send_module_notification(
         suite_name = module_name.replace(".py", "").replace("_", " ")
         message = f"[{Config.SITE.upper()}] - [{Config.ENVIRONMENT.upper()}] - [{suite_name}] - [{status} {emoji}] - [{duration:.1f}s]"
 
-        if Config.ALLURE_ENABLED:
-            allure_url = (
-                Config.ALLURE_REPORT_URL
-                or os.getenv("ALLURE_REPORT_URL")
-                or os.getenv("BUILD_URL")
-            )
-
-            if allure_url:
-                if not allure_url.endswith("allure"):
-                    allure_url = f"{allure_url.rstrip('/')}/allure"
-                message += f"\n📊 Allure: {allure_url}"
+        if Config.ALLURE_ENABLED and Config.ALLURE_REPORT_URL:
+            allure_url = Config.ALLURE_REPORT_URL
+            if not allure_url.endswith("allure"):
+                allure_url = f"{allure_url.rstrip('/')}/allure"
+            message += f"\n📊 Allure: {allure_url}"
+        elif os.getenv("BUILD_URL"):
+            message += f"\n🔗 Build: {os.getenv('BUILD_URL')}"
 
         if hasattr(Config, "SLACK_BOT_TOKEN") and hasattr(Config, "SLACK_CHANNEL_ID"):
             if Config.SLACK_BOT_TOKEN and Config.SLACK_CHANNEL_ID:
