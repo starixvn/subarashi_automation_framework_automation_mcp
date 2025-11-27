@@ -49,6 +49,11 @@ def _send_module_notification(
     duration: float,
 ) -> None:
     try:
+        print("\n" + "=" * 80)
+        print(f"[DEBUG] Module notification triggered for: {module_name}")
+        print(f"[DEBUG] Total: {total}, Passed: {passed}, Failed: {failed}")
+        print("=" * 80 + "\n")
+
         reports = Reports()
 
         if failed == 0:
@@ -67,13 +72,37 @@ def _send_module_notification(
                 allure_url = f"{allure_url.rstrip('/')}/allure"
             message += f"\n📊 Allure: {allure_url}"
         elif os.getenv("BUILD_URL"):
-            message += f"\n🔗 Build: {os.getenv('BUILD_URL')}"
+            build_url = os.getenv("BUILD_URL")
+            message += f"\n🔗 Build: {build_url}"
+            print(f"[DEBUG] Added BUILD_URL to message: {build_url}")
+
+        print("[DEBUG] Slack message prepared:")
+        print(f"[DEBUG] {message}")
+        print(f"[DEBUG] SLACK_BOT_TOKEN exists: {hasattr(Config, 'SLACK_BOT_TOKEN')}")
+        print(f"[DEBUG] SLACK_CHANNEL_ID exists: {hasattr(Config, 'SLACK_CHANNEL_ID')}")
+        print(
+            f"[DEBUG] SLACK_BOT_TOKEN value: {Config.SLACK_BOT_TOKEN[:20]}..."
+            if Config.SLACK_BOT_TOKEN
+            else "[DEBUG] SLACK_BOT_TOKEN is empty"
+        )
+        print(f"[DEBUG] SLACK_CHANNEL_ID value: {Config.SLACK_CHANNEL_ID}")
 
         if hasattr(Config, "SLACK_BOT_TOKEN") and hasattr(Config, "SLACK_CHANNEL_ID"):
             if Config.SLACK_BOT_TOKEN and Config.SLACK_CHANNEL_ID:
+                print("[DEBUG] Sending message to Slack...")
                 reports.send_message_to_slack(message)
+                print("[DEBUG] Slack message sent successfully!")
+            else:
+                print("[DEBUG] Slack credentials are empty")
+        else:
+            print("[DEBUG] Slack config attributes not found")
 
     except Exception as e:
+        print(f"[ERROR] Failed to send module notification: {e}")
+        print(f"[ERROR] Exception type: {type(e)}")
+        import traceback
+
+        traceback.print_exc()
         logger.error(f"Failed to send module notification: {e}")
 
 
