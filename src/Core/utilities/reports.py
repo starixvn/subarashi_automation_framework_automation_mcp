@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import requests
+import ssl
 from typing import List
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -102,7 +103,11 @@ class Reports:
                 )
                 return
 
-            client = WebClient(token=Config.SLACK_BOT_TOKEN)
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+
+            client = WebClient(token=Config.SLACK_BOT_TOKEN, ssl=ssl_context)
 
             response = client.chat_postMessage(
                 channel=Config.SLACK_CHANNEL_ID,
