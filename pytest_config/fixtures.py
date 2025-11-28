@@ -46,8 +46,9 @@ def browser_context_args(browser_context_args: dict[str, Any]) -> dict[str, Any]
     }
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def auto_login(page: Page) -> Generator[None, None, None]:
+    """Login fixture for E2E tests. Use explicitly with @pytest.mark.usefixtures('auto_login')"""
     action = ActionCommon(page)
     action.login()
     yield

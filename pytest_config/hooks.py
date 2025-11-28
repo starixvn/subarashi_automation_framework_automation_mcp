@@ -135,7 +135,8 @@ def pytest_runtest_makereport(
 
         if rep.when == "call" or (rep.when == "setup" and rep.failed):
             test_results.append(test_result)
+            tc_marker = item.get_closest_marker("tc_id")
+            if tc_marker and Config.GOOGLE_SHEETS_ENABLED:
+                from pytest_config.reporting import update_test_case_status_in_sheets
 
-            from pytest_config.reporting import update_test_case_status_in_sheets
-
-            update_test_case_status_in_sheets(test_result, item)
+                update_test_case_status_in_sheets(test_result, item)

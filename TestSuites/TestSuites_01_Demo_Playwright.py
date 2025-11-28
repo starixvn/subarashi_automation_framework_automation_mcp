@@ -10,6 +10,7 @@ root_dir = d(d(abspath(__file__)))
 sys.path.append(root_dir)
 
 
+@pytest.mark.usefixtures("auto_login")
 class TestDemoPlaywright:
     TEST_CASE_SHEET_NAME = "Testcase"
 
