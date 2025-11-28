@@ -15,6 +15,18 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption("--site", default=None, help="Site: lrf, lap")
     parser.addoption("--headless", default=None, help="Headless mode: true, false")
     parser.addoption(
+        "--allure",
+        action="store_true",
+        default=None,
+        help="Enable Allure reporting (overrides config)",
+    )
+    parser.addoption(
+        "--no-allure",
+        action="store_true",
+        default=False,
+        help="Disable Allure reporting (overrides config)",
+    )
+    parser.addoption(
         "--allure-serve",
         action="store_true",
         default=False,
@@ -39,6 +51,13 @@ def pytest_configure(config: pytest.Config) -> None:
     headless_option = config.getoption("--headless")
     if headless_option is not None:
         Config.HEADLESS = headless_option.lower() == "true"
+
+    if config.getoption("--no-allure"):
+        Config.ALLURE_ENABLED = False
+        logger.info("Allure reporting DISABLED via --no-allure flag")
+    elif config.getoption("--allure"):
+        Config.ALLURE_ENABLED = True
+        logger.info("Allure reporting ENABLED via --allure flag")
 
     allure_report_url = config.getoption("--allure-report-url")
     if allure_report_url:

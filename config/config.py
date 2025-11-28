@@ -27,9 +27,7 @@ class Config:
     ALLURE_BATCH_FILE = TEST_RESULTS_DIR / "start_allure.bat"
 
     # Allure Configuration
-    ALLURE_ENABLED = (
-        True  # Generate Allure results + auto-open after test run (local only)
-    )
+    ALLURE_ENABLED = False  # Set True or use --allure flag to enable Allure reporting
     ALLURE_REPORT_URL = None  # Set via CLI --allure-report-url or Jenkins env
 
     URLS: ClassVar[dict[str, dict[str, dict[str, str]]]] = {
